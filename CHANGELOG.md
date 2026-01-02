@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.2](https://github.com/dasunNimantha/reel/compare/v0.1.1...v0.1.2) (2026-01-02)
+
+
+### ✨ Features
+
+* add comprehensive tests and CI improvements ([07267a8](https://github.com/dasunNimantha/reel/commit/07267a85d5d210e1cdee3c3e4895f4b0799e6e3f))
+
+
+### 🔧 CI/CD
+
+* add workflow_dispatch to allow manual trigger ([5f20059](https://github.com/dasunNimantha/reel/commit/5f20059fb1ab3b33d9fa5c6fd4bc76cb81c1fe1b))
+* only run tests on pull requests, not on master push ([84d9666](https://github.com/dasunNimantha/reel/commit/84d966689a431b8f885a439de6a97ffcced6965b))
+* restrict pull request trigger to master branch only ([#4](https://github.com/dasunNimantha/reel/issues/4)) ([dc78ee4](https://github.com/dasunNimantha/reel/commit/dc78ee4941a340dde7dd27d6a39c9894b89a4f25))
+
 ## [0.1.1](https://github.com/dasunNimantha/reel/compare/v0.1.0...v0.1.1) (2026-01-02)
 
 
