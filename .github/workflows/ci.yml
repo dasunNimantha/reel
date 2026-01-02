@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [master]
   push:
     branches:
       - 'release-please--**' # Auto-pass for release-please branches
@@ -49,4 +49,3 @@ jobs:
       - name: Run tests
         if: "!startsWith(github.ref, 'refs/heads/release-please--')"
         run: cargo test --verbose
-
