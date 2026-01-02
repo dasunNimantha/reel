@@ -1,3 +1,6 @@
+// Hide console window on Windows in release builds
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use reel::ReelApp;
 use iced::{Application, Font, Pixels, Settings};
 

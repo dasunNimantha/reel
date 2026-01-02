@@ -292,3 +292,439 @@ pub fn is_video_file(extension: &str) -> bool {
     VIDEO_EXTENSIONS.contains(&extension.to_lowercase().as_str())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    // ==================== MEDIA TYPE TESTS ====================
+
+    #[test]
+    fn test_media_type_display_name() {
+        assert_eq!(MediaType::Unknown.display_name(), "Unknown");
+        assert_eq!(MediaType::Movie.display_name(), "Movie");
+        assert_eq!(MediaType::TvShow.display_name(), "TV Show");
+    }
+
+    #[test]
+    fn test_media_type_short_name() {
+        assert_eq!(MediaType::Unknown.short_name(), "?");
+        assert_eq!(MediaType::Movie.short_name(), "M");
+        assert_eq!(MediaType::TvShow.short_name(), "TV");
+    }
+
+    #[test]
+    fn test_media_type_default() {
+        let default: MediaType = Default::default();
+        assert_eq!(default, MediaType::Unknown);
+    }
+
+    #[test]
+    fn test_media_type_equality() {
+        assert_eq!(MediaType::Movie, MediaType::Movie);
+        assert_ne!(MediaType::Movie, MediaType::TvShow);
+        assert_ne!(MediaType::TvShow, MediaType::Unknown);
+    }
+
+    #[test]
+    fn test_media_type_clone() {
+        let original = MediaType::TvShow;
+        let cloned = original.clone();
+        assert_eq!(original, cloned);
+    }
+
+    // ==================== VIDEO EXTENSIONS TESTS ====================
+
+    #[test]
+    fn test_is_video_file_mkv() {
+        assert!(is_video_file("mkv"));
+        assert!(is_video_file("MKV"));
+        assert!(is_video_file("Mkv"));
+    }
+
+    #[test]
+    fn test_is_video_file_mp4() {
+        assert!(is_video_file("mp4"));
+        assert!(is_video_file("MP4"));
+    }
+
+    #[test]
+    fn test_is_video_file_avi() {
+        assert!(is_video_file("avi"));
+        assert!(is_video_file("AVI"));
+    }
+
+    #[test]
+    fn test_is_video_file_mov() {
+        assert!(is_video_file("mov"));
+        assert!(is_video_file("MOV"));
+    }
+
+    #[test]
+    fn test_is_video_file_wmv() {
+        assert!(is_video_file("wmv"));
+    }
+
+    #[test]
+    fn test_is_video_file_flv() {
+        assert!(is_video_file("flv"));
+    }
+
+    #[test]
+    fn test_is_video_file_webm() {
+        assert!(is_video_file("webm"));
+    }
+
+    #[test]
+    fn test_is_video_file_m4v() {
+        assert!(is_video_file("m4v"));
+    }
+
+    #[test]
+    fn test_is_video_file_mpeg_formats() {
+        assert!(is_video_file("mpg"));
+        assert!(is_video_file("mpeg"));
+    }
+
+    #[test]
+    fn test_is_video_file_ts_formats() {
+        assert!(is_video_file("ts"));
+        assert!(is_video_file("m2ts"));
+    }
+
+    #[test]
+    fn test_is_video_file_non_video() {
+        assert!(!is_video_file("txt"));
+        assert!(!is_video_file("jpg"));
+        assert!(!is_video_file("png"));
+        assert!(!is_video_file("pdf"));
+        assert!(!is_video_file("doc"));
+        assert!(!is_video_file("mp3"));
+        assert!(!is_video_file("srt"));
+        assert!(!is_video_file("sub"));
+    }
+
+    #[test]
+    fn test_is_video_file_empty() {
+        assert!(!is_video_file(""));
+    }
+
+    #[test]
+    fn test_video_extensions_count() {
+        assert_eq!(VIDEO_EXTENSIONS.len(), 12);
+    }
+
+    // ==================== MEDIA FILE TESTS ====================
+
+    #[test]
+    fn test_media_file_formatted_size_bytes() {
+        let mut file = MediaFile::new(PathBuf::from("/test/small.mkv"));
+        file.size_bytes = 500;
+        assert_eq!(file.formatted_size(), "500 B");
+    }
+
+    #[test]
+    fn test_media_file_formatted_size_kb() {
+        let mut file = MediaFile::new(PathBuf::from("/test/medium.mkv"));
+        file.size_bytes = 2048;
+        assert_eq!(file.formatted_size(), "2 KB");
+    }
+
+    #[test]
+    fn test_media_file_formatted_size_mb() {
+        let mut file = MediaFile::new(PathBuf::from("/test/large.mkv"));
+        file.size_bytes = 52_428_800; // 50 MB
+        assert_eq!(file.formatted_size(), "50.0 MB");
+    }
+
+    #[test]
+    fn test_media_file_formatted_size_gb() {
+        let mut file = MediaFile::new(PathBuf::from("/test/huge.mkv"));
+        file.size_bytes = 4_294_967_296; // 4 GB
+        assert_eq!(file.formatted_size(), "4.00 GB");
+    }
+
+    #[test]
+    fn test_media_file_extracts_filename() {
+        let file = MediaFile::new(PathBuf::from("/path/to/movie.mkv"));
+        assert_eq!(file.filename, "movie.mkv");
+    }
+
+    #[test]
+    fn test_media_file_extracts_extension() {
+        let file = MediaFile::new(PathBuf::from("/path/to/movie.mkv"));
+        assert_eq!(file.extension, "mkv");
+    }
+
+    #[test]
+    fn test_media_file_default_values() {
+        let file = MediaFile::new(PathBuf::from("/test/file.mkv"));
+        assert_eq!(file.media_type, MediaType::Unknown);
+        assert!(file.parsed_info.is_none());
+        assert!(file.matched_metadata.is_none());
+        assert!(file.new_filename.is_none());
+        assert!(!file.is_selected);
+    }
+
+    // ==================== PARSED MEDIA INFO TESTS ====================
+
+    #[test]
+    fn test_parsed_media_info_default() {
+        let info: ParsedMediaInfo = Default::default();
+        assert!(info.title.is_empty());
+        assert!(info.year.is_none());
+        assert!(info.season.is_none());
+        assert!(info.episode.is_none());
+        assert!(info.episode_title.is_none());
+        assert!(info.quality.is_none());
+        assert!(info.source.is_none());
+        assert!(info.codec.is_none());
+        assert!(info.audio.is_none());
+        assert!(info.group.is_none());
+    }
+
+    #[test]
+    fn test_parsed_media_info_with_values() {
+        let info = ParsedMediaInfo {
+            title: "Test Movie".to_string(),
+            year: Some(2023),
+            season: Some(1),
+            episode: Some(5),
+            episode_title: Some("Pilot".to_string()),
+            quality: Some("1080p".to_string()),
+            source: Some("BluRay".to_string()),
+            codec: Some("x265".to_string()),
+            audio: Some("DTS".to_string()),
+            group: Some("SPARKS".to_string()),
+        };
+        assert_eq!(info.title, "Test Movie");
+        assert_eq!(info.year, Some(2023));
+        assert_eq!(info.quality, Some("1080p".to_string()));
+    }
+
+    // ==================== MEDIA METADATA TESTS ====================
+
+    #[test]
+    fn test_media_metadata_default() {
+        let metadata: MediaMetadata = Default::default();
+        assert_eq!(metadata.tmdb_id, 0);
+        assert!(metadata.title.is_empty());
+        assert!(metadata.original_title.is_none());
+        assert!(metadata.year.is_none());
+        assert!(metadata.overview.is_none());
+        assert!(metadata.genres.is_empty());
+    }
+
+    #[test]
+    fn test_media_metadata_movie() {
+        let metadata = MediaMetadata {
+            tmdb_id: 603,
+            title: "The Matrix".to_string(),
+            original_title: Some("The Matrix".to_string()),
+            year: Some(1999),
+            overview: Some("Description".to_string()),
+            poster_path: Some("/path.jpg".to_string()),
+            backdrop_path: None,
+            vote_average: Some(8.7),
+            genres: vec!["Action".to_string(), "Sci-Fi".to_string()],
+            season_number: None,
+            episode_number: None,
+            episode_title: None,
+            air_date: None,
+            show_name: None,
+        };
+        assert_eq!(metadata.tmdb_id, 603);
+        assert_eq!(metadata.title, "The Matrix");
+        assert_eq!(metadata.genres.len(), 2);
+    }
+
+    #[test]
+    fn test_media_metadata_tv_show() {
+        let metadata = MediaMetadata {
+            tmdb_id: 1396,
+            title: "Pilot".to_string(),
+            original_title: None,
+            year: Some(2008),
+            overview: None,
+            poster_path: None,
+            backdrop_path: None,
+            vote_average: Some(9.5),
+            genres: vec!["Drama".to_string()],
+            season_number: Some(1),
+            episode_number: Some(1),
+            episode_title: Some("Pilot".to_string()),
+            air_date: Some("2008-01-20".to_string()),
+            show_name: Some("Breaking Bad".to_string()),
+        };
+        assert_eq!(metadata.show_name, Some("Breaking Bad".to_string()));
+        assert_eq!(metadata.season_number, Some(1));
+        assert_eq!(metadata.episode_number, Some(1));
+    }
+
+    // ==================== SEARCH RESULT TESTS ====================
+
+    #[test]
+    fn test_search_result() {
+        let result = SearchResult {
+            tmdb_id: 603,
+            title: "The Matrix".to_string(),
+            year: Some(1999),
+            media_type: MediaType::Movie,
+            overview: Some("A computer hacker learns...".to_string()),
+            poster_path: Some("/path.jpg".to_string()),
+            vote_average: Some(8.7),
+        };
+        assert_eq!(result.tmdb_id, 603);
+        assert_eq!(result.title, "The Matrix");
+        assert_eq!(result.media_type, MediaType::Movie);
+    }
+
+    // ==================== RENAME PATTERN TESTS ====================
+
+    #[test]
+    fn test_rename_pattern_default() {
+        let pattern = RenamePattern::default();
+        assert_eq!(pattern.name, "Default");
+        assert_eq!(pattern.movie_pattern, "{title} ({year})");
+        assert_eq!(pattern.tv_pattern, "{show} - S{season:02}E{episode:02} - {episode_title}");
+    }
+
+    #[test]
+    fn test_rename_pattern_plex() {
+        let pattern = RenamePattern::plex();
+        assert_eq!(pattern.name, "Plex");
+        assert!(pattern.tv_pattern.contains("s{season:02}e{episode:02}"));
+    }
+
+    #[test]
+    fn test_rename_pattern_jellyfin() {
+        let pattern = RenamePattern::jellyfin();
+        assert_eq!(pattern.name, "Jellyfin");
+        assert!(pattern.tv_pattern.contains("S{season:02}E{episode:02}"));
+    }
+
+    #[test]
+    fn test_all_patterns() {
+        let patterns = RenamePattern::all_patterns();
+        assert_eq!(patterns.len(), 3);
+    }
+
+    // ==================== APP STATE TESTS ====================
+
+    #[test]
+    fn test_app_state_new() {
+        let state = AppState::new();
+        assert!(state.files.is_empty());
+        assert!(state.selected_file_index.is_none());
+        assert!(state.search_query.is_empty());
+        assert!(!state.loading);
+        assert!(!state.show_rename_confirm);
+    }
+
+    #[test]
+    fn test_app_state_filtered_files_no_query() {
+        let mut state = AppState::new();
+        state.files.push(MediaFile::new(PathBuf::from("/test/movie1.mkv")));
+        state.files.push(MediaFile::new(PathBuf::from("/test/movie2.mkv")));
+        
+        let filtered = state.filtered_files();
+        assert_eq!(filtered.len(), 2);
+    }
+
+    #[test]
+    fn test_app_state_filtered_files_with_query() {
+        let mut state = AppState::new();
+        let mut file1 = MediaFile::new(PathBuf::from("/test/matrix.mkv"));
+        file1.filename = "matrix.mkv".to_string();
+        let mut file2 = MediaFile::new(PathBuf::from("/test/inception.mkv"));
+        file2.filename = "inception.mkv".to_string();
+        state.files.push(file1);
+        state.files.push(file2);
+        
+        state.search_query = "matrix".to_string();
+        let filtered = state.filtered_files();
+        assert_eq!(filtered.len(), 1);
+        assert_eq!(filtered[0].1.filename, "matrix.mkv");
+    }
+
+    #[test]
+    fn test_app_state_selected_file() {
+        let mut state = AppState::new();
+        state.files.push(MediaFile::new(PathBuf::from("/test/movie.mkv")));
+        
+        assert!(state.selected_file().is_none());
+        
+        state.selected_file_index = Some(0);
+        assert!(state.selected_file().is_some());
+    }
+
+    #[test]
+    fn test_app_state_selected_file_out_of_bounds() {
+        let mut state = AppState::new();
+        state.files.push(MediaFile::new(PathBuf::from("/test/movie.mkv")));
+        state.selected_file_index = Some(5);
+        
+        assert!(state.selected_file().is_none());
+    }
+
+    #[test]
+    fn test_app_state_files_with_matches() {
+        let mut state = AppState::new();
+        
+        let mut matched = MediaFile::new(PathBuf::from("/test/movie1.mkv"));
+        matched.matched_metadata = Some(MediaMetadata::default());
+        
+        let unmatched = MediaFile::new(PathBuf::from("/test/movie2.mkv"));
+        
+        state.files.push(matched);
+        state.files.push(unmatched);
+        
+        assert_eq!(state.files_with_matches(), 1);
+    }
+
+    #[test]
+    fn test_app_state_files_ready_for_rename() {
+        let mut state = AppState::new();
+        
+        let mut ready = MediaFile::new(PathBuf::from("/test/movie1.mkv"));
+        ready.is_selected = true;
+        ready.new_filename = Some("New Name.mkv".to_string());
+        
+        let mut not_selected = MediaFile::new(PathBuf::from("/test/movie2.mkv"));
+        not_selected.is_selected = false;
+        not_selected.new_filename = Some("New Name 2.mkv".to_string());
+        
+        let mut no_new_name = MediaFile::new(PathBuf::from("/test/movie3.mkv"));
+        no_new_name.is_selected = true;
+        no_new_name.new_filename = None;
+        
+        state.files.push(ready);
+        state.files.push(not_selected);
+        state.files.push(no_new_name);
+        
+        assert_eq!(state.files_ready_for_rename().len(), 1);
+    }
+
+    #[test]
+    fn test_app_state_effective_api_key_default() {
+        let state = AppState::new();
+        // When using_default_key is true (if default key exists), it should return the default key
+        // When no default key, it returns empty string
+        let key = state.effective_api_key();
+        if has_default_api_key() {
+            assert!(!key.is_empty());
+        } else {
+            assert!(key.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_app_state_effective_api_key_custom() {
+        let mut state = AppState::new();
+        state.using_default_key = false;
+        state.tmdb_api_key = "custom_key_12345".to_string();
+        
+        assert_eq!(state.effective_api_key(), "custom_key_12345");
+    }
+}
+
