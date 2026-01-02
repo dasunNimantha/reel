@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [master]
   workflow_dispatch: # Allow manual trigger to register job in GitHub
 
 env:
