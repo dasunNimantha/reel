@@ -799,6 +799,23 @@ impl Application for ReelApp {
             Message::Tick(_) => Command::none(),
 
             Message::CloseRequested => window::close(window::Id::MAIN),
+
+            Message::ClearMatchedMetadata => {
+                for file in &mut self.state.files {
+                    file.matched_metadata = None;
+                    file.new_filename = None;
+                }
+                self.state.status = "Cleared all matches - ready to re-match".to_string();
+                Command::none()
+            }
+
+            Message::CopyFilename(filename) => {
+                if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                    let _ = clipboard.set_text(&filename);
+                    self.state.status = format!("Copied: {}", filename);
+                }
+                Command::none()
+            }
         }
     }
 
@@ -811,8 +828,29 @@ impl Application for ReelApp {
     }
 
     fn subscription(&self) -> Subscription<Message> {
+        use iced::keyboard::{self, Key};
+
         let mut subscriptions = vec![event::listen_with(|event, _| match event {
             Event::Window(_, window::Event::CloseRequested) => Some(Message::CloseRequested),
+            // Keyboard shortcuts
+            Event::Keyboard(keyboard::Event::KeyPressed { key, modifiers, .. }) => {
+                if modifiers.control() || modifiers.command() {
+                    match key.as_ref() {
+                        Key::Character("o") => Some(Message::AddFolder),
+                        Key::Character("m") => Some(Message::AutoMatchAll),
+                        Key::Character("r") => Some(Message::ShowRenamePreview),
+                        Key::Character("a") => Some(Message::SelectAllFiles),
+                        Key::Character("d") => Some(Message::DeselectAllFiles),
+                        _ => None,
+                    }
+                } else {
+                    match key.as_ref() {
+                        Key::Named(keyboard::key::Named::F5) => Some(Message::RefreshFiles),
+                        Key::Named(keyboard::key::Named::Delete) => Some(Message::RemoveAllFiles),
+                        _ => None,
+                    }
+                }
+            }
             _ => None,
         })];
 

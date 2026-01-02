@@ -10,7 +10,8 @@ pub enum Message {
     // File management
     AddFiles,
     AddFolder,
-    RefreshFiles, // Rescan current directory
+    RefreshFiles,         // Rescan current directory
+    ClearMatchedMetadata, // Clear all matched metadata to re-match
     FilesAdded(Result<Vec<MediaFile>, String>),
     FolderAdded(Result<Vec<MediaFile>, String>), // Replaces existing files
     FileSelected(usize),
@@ -20,6 +21,7 @@ pub enum Message {
     SelectAllFiles,
     DeselectAllFiles,
     ToggleFileSelection(usize),
+    CopyFilename(String), // Copy filename to clipboard
 
     // Media type
     SetMediaType(usize, crate::model::MediaType),

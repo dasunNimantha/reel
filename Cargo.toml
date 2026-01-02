@@ -45,5 +45,8 @@ lazy_static = "1.4"
 # Image loading for app icon
 image = { version = "0.24", default-features = false, features = ["png"] }
 
+# Clipboard for copy functionality
+arboard = "3.4"
+
 [build-dependencies]
 winresource = "0.1"

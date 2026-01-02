@@ -549,6 +549,11 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
 
     // Find and Match Section with loading state in button
     let is_matching = state.loading;
+    let matched_count = state
+        .files
+        .iter()
+        .filter(|f| f.matched_metadata.is_some())
+        .count();
     let match_section = column![row![
         text("Find & Match")
             .size(13)
@@ -564,6 +569,26 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                 .style(iced::theme::Text::Color(colors.success))
         } else {
             text("").size(11)
+        },
+        // Clear matches button (only show if there are matched files)
+        if matched_count > 0 {
+            Space::with_width(8)
+        } else {
+            Space::with_width(0)
+        },
+        if matched_count > 0 {
+            button(icon_to_text(Bootstrap::ArrowCounterclockwise).size(11.0))
+                .style(iced::theme::Button::Custom(Box::new(
+                    SecondaryButtonStyle { mode: theme_mode },
+                )))
+                .padding([4, 6])
+                .on_press(Message::ClearMatchedMetadata)
+        } else {
+            button(text("").size(1))
+                .style(iced::theme::Button::Custom(Box::new(
+                    SecondaryButtonStyle { mode: theme_mode },
+                )))
+                .padding(0)
         },
     ]
     .align_items(Alignment::Center),]
@@ -587,24 +612,31 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
         )))
         .into()
     } else if has_files && has_api_key {
-        button(
-            container(
-                row![
-                    icon_to_text(Bootstrap::Magic).size(14.0),
-                    Space::with_width(8),
-                    text("Find & Match All").size(13),
-                ]
-                .align_items(Alignment::Center),
+        tooltip(
+            button(
+                container(
+                    row![
+                        icon_to_text(Bootstrap::Magic).size(14.0),
+                        Space::with_width(8),
+                        text("Find & Match All").size(13),
+                    ]
+                    .align_items(Alignment::Center),
+                )
+                .width(Length::Fill)
+                .center_x(),
             )
-            .width(Length::Fill)
-            .center_x(),
+            .style(iced::theme::Button::Custom(Box::new(PrimaryButtonStyle {
+                mode: theme_mode,
+            })))
+            .padding([10, 16])
+            .on_press(Message::AutoMatchAll)
+            .width(Length::Fill),
+            "Ctrl+M",
+            tooltip::Position::Bottom,
         )
-        .style(iced::theme::Button::Custom(Box::new(PrimaryButtonStyle {
+        .style(iced::theme::Container::Custom(Box::new(TooltipStyle {
             mode: theme_mode,
         })))
-        .padding([10, 16])
-        .on_press(Message::AutoMatchAll)
-        .width(Length::Fill)
         .into()
     } else {
         button(
