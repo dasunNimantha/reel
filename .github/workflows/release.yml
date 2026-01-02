@@ -102,4 +102,3 @@ jobs:
           for file in artifacts/*/*; do
             [ -f "$file" ] && gh release upload ${{ needs.release-please.outputs.tag_name }} "$file" --repo ${{ github.repository }}
           done
-
