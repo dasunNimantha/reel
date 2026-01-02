@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.4](https://github.com/dasunNimantha/reel/compare/v0.1.3...v0.1.4) (2026-01-02)
+
+
+### ✨ Features
+
+* add keyboard shortcuts and UX improvements ([4ca89dd](https://github.com/dasunNimantha/reel/commit/4ca89ddaf188bcee481d65d92442e02fd3f600b9))
+
+
+### 🔧 CI/CD
+
+* add pull_request_target to trigger CI for release-please PRs ([3429c6b](https://github.com/dasunNimantha/reel/commit/3429c6bd3456c9899501b748ce1f0a3524221655))
+
 ## [0.1.3](https://github.com/dasunNimantha/reel/compare/v0.1.2...v0.1.3) (2026-01-02)
 
 
