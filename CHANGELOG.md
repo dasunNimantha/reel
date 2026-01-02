@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/dasunNimantha/reel/compare/v0.1.2...v0.1.3) (2026-01-02)
+
+
+### 🐛 Bug Fixes
+
+* fix pipeline ([#7](https://github.com/dasunNimantha/reel/issues/7)) ([4640a16](https://github.com/dasunNimantha/reel/commit/4640a16ca59d4818321bc3227fa20bdc0df5bde8))
+
 ## [0.1.2](https://github.com/dasunNimantha/reel/compare/v0.1.1...v0.1.2) (2026-01-02)
 
 
