@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [master]
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   release-please:
@@ -101,4 +102,3 @@ jobs:
           for file in artifacts/*/*; do
             [ -f "$file" ] && gh release upload ${{ needs.release-please.outputs.tag_name }} "$file" --repo ${{ github.repository }}
           done
-
