@@ -42,5 +42,8 @@ chrono = "0.4"
 # Lazy static for singletons
 lazy_static = "1.4"
 
+# Image loading for app icon
+image = { version = "0.24", default-features = false, features = ["png"] }
+
 [build-dependencies]
 winresource = "0.1"
