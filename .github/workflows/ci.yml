@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main, master]
+  workflow_dispatch: # Allow manual trigger to register job in GitHub
 
 env:
   CARGO_TERM_COLOR: always
