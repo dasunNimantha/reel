@@ -3,9 +3,9 @@ name: CI
 on:
   pull_request:
     branches: [master]
-  push:
-    branches:
-      - 'release-please--**' # Auto-pass for release-please branches
+  # pull_request_target triggers for PRs created by bots (like release-please)
+  pull_request_target:
+    branches: [master]
   workflow_dispatch: # Allow manual trigger to register job in GitHub
 
 env:
@@ -16,25 +16,27 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      # Skip tests for release-please branches (only version/changelog changes)
+      # Skip tests for release-please PRs (only version/changelog changes)
       - name: Skip for release-please
-        if: startsWith(github.ref, 'refs/heads/release-please--')
-        run: echo "Skipping tests for release-please branch"
+        if: startsWith(github.head_ref, 'release-please--')
+        run: echo "Skipping tests for release-please PR"
 
       - uses: actions/checkout@v4
-        if: "!startsWith(github.ref, 'refs/heads/release-please--')"
+        if: "!startsWith(github.head_ref, 'release-please--')"
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       
       - uses: dtolnay/rust-toolchain@stable
-        if: "!startsWith(github.ref, 'refs/heads/release-please--')"
+        if: "!startsWith(github.head_ref, 'release-please--')"
 
       - name: Install Linux dependencies
-        if: "!startsWith(github.ref, 'refs/heads/release-please--')"
+        if: "!startsWith(github.head_ref, 'release-please--')"
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libxkbcommon-dev libwayland-dev libvulkan-dev libssl-dev pkg-config
 
       - uses: actions/cache@v4
-        if: "!startsWith(github.ref, 'refs/heads/release-please--')"
+        if: "!startsWith(github.head_ref, 'release-please--')"
         with:
           path: |
             ~/.cargo/registry
@@ -43,9 +45,9 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build
-        if: "!startsWith(github.ref, 'refs/heads/release-please--')"
+        if: "!startsWith(github.head_ref, 'release-please--')"
         run: cargo build --verbose
 
       - name: Run tests
-        if: "!startsWith(github.ref, 'refs/heads/release-please--')"
+        if: "!startsWith(github.head_ref, 'release-please--')"
         run: cargo test --verbose
