@@ -52,4 +52,3 @@ pub async fn scan_files(paths: Vec<PathBuf>) -> Result<Vec<MediaFile>, String> {
 
     Ok(files)
 }
-

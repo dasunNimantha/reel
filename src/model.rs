@@ -88,11 +88,11 @@ pub struct ParsedMediaInfo {
     pub season: Option<u32>,
     pub episode: Option<u32>,
     pub episode_title: Option<String>,
-    pub quality: Option<String>,       // e.g., "1080p", "720p", "4K"
-    pub source: Option<String>,        // e.g., "BluRay", "WEB-DL", "HDTV"
-    pub codec: Option<String>,         // e.g., "x264", "x265", "HEVC"
-    pub audio: Option<String>,         // e.g., "DTS", "AAC", "AC3"
-    pub group: Option<String>,         // Release group
+    pub quality: Option<String>, // e.g., "1080p", "720p", "4K"
+    pub source: Option<String>,  // e.g., "BluRay", "WEB-DL", "HDTV"
+    pub codec: Option<String>,   // e.g., "x264", "x265", "HEVC"
+    pub audio: Option<String>,   // e.g., "DTS", "AAC", "AC3"
+    pub group: Option<String>,   // Release group
 }
 
 /// Metadata from online database (TMDB)
@@ -107,7 +107,7 @@ pub struct MediaMetadata {
     pub backdrop_path: Option<String>,
     pub vote_average: Option<f32>,
     pub genres: Vec<String>,
-    
+
     // TV Show specific
     pub season_number: Option<u32>,
     pub episode_number: Option<u32>,
@@ -180,22 +180,22 @@ pub struct AppState {
     pub search_query: String,
     pub loading: bool,
     pub status: String,
-    
+
     // Metadata search
     pub search_results: Vec<SearchResult>,
     pub search_loading: bool,
     pub search_input: String,
-    
+
     // TMDB API
-    pub tmdb_api_key: String,           // User-entered key (empty if using default)
-    pub using_default_key: bool,        // True = use built-in key, input shows placeholder
-    pub api_key_valid: Option<bool>,    // None = not verified, Some(true) = valid, Some(false) = invalid
+    pub tmdb_api_key: String,    // User-entered key (empty if using default)
+    pub using_default_key: bool, // True = use built-in key, input shows placeholder
+    pub api_key_valid: Option<bool>, // None = not verified, Some(true) = valid, Some(false) = invalid
     pub api_key_verifying: bool,
-    
+
     // Rename settings
     pub rename_pattern: RenamePattern,
     pub output_directory: Option<PathBuf>,
-    
+
     // Confirmation modal
     pub show_rename_confirm: bool,
     pub rename_preview: Vec<(String, String)>, // (old_name, new_name)
@@ -205,9 +205,7 @@ pub struct AppState {
 pub fn get_default_api_key() -> String {
     // This is read at COMPILE TIME from the environment variable
     // Set REEL_TMDB_API_KEY in your build environment (e.g., GitHub Actions secrets)
-    option_env!("REEL_TMDB_API_KEY")
-        .unwrap_or("")
-        .to_string()
+    option_env!("REEL_TMDB_API_KEY").unwrap_or("").to_string()
 }
 
 /// Check if a default API key is available
@@ -237,7 +235,7 @@ impl AppState {
             rename_preview: Vec::new(),
         }
     }
-    
+
     /// Get the effective API key (user-entered or default)
     pub fn effective_api_key(&self) -> String {
         if self.using_default_key {
@@ -261,8 +259,7 @@ impl AppState {
     }
 
     pub fn selected_file(&self) -> Option<&MediaFile> {
-        self.selected_file_index
-            .and_then(|idx| self.files.get(idx))
+        self.selected_file_index.and_then(|idx| self.files.get(idx))
     }
 
     pub fn selected_file_mut(&mut self) -> Option<&mut MediaFile> {
@@ -271,7 +268,10 @@ impl AppState {
     }
 
     pub fn files_with_matches(&self) -> usize {
-        self.files.iter().filter(|f| f.matched_metadata.is_some()).count()
+        self.files
+            .iter()
+            .filter(|f| f.matched_metadata.is_some())
+            .count()
     }
 
     pub fn files_ready_for_rename(&self) -> Vec<&MediaFile> {
@@ -327,10 +327,10 @@ mod tests {
     }
 
     #[test]
-    fn test_media_type_clone() {
+    fn test_media_type_copy() {
         let original = MediaType::TvShow;
-        let cloned = original.clone();
-        assert_eq!(original, cloned);
+        let copied = original; // MediaType implements Copy
+        assert_eq!(original, copied);
     }
 
     // ==================== VIDEO EXTENSIONS TESTS ====================
@@ -586,7 +586,10 @@ mod tests {
         let pattern = RenamePattern::default();
         assert_eq!(pattern.name, "Default");
         assert_eq!(pattern.movie_pattern, "{title} ({year})");
-        assert_eq!(pattern.tv_pattern, "{show} - S{season:02}E{episode:02} - {episode_title}");
+        assert_eq!(
+            pattern.tv_pattern,
+            "{show} - S{season:02}E{episode:02} - {episode_title}"
+        );
     }
 
     #[test]
@@ -624,9 +627,13 @@ mod tests {
     #[test]
     fn test_app_state_filtered_files_no_query() {
         let mut state = AppState::new();
-        state.files.push(MediaFile::new(PathBuf::from("/test/movie1.mkv")));
-        state.files.push(MediaFile::new(PathBuf::from("/test/movie2.mkv")));
-        
+        state
+            .files
+            .push(MediaFile::new(PathBuf::from("/test/movie1.mkv")));
+        state
+            .files
+            .push(MediaFile::new(PathBuf::from("/test/movie2.mkv")));
+
         let filtered = state.filtered_files();
         assert_eq!(filtered.len(), 2);
     }
@@ -640,7 +647,7 @@ mod tests {
         file2.filename = "inception.mkv".to_string();
         state.files.push(file1);
         state.files.push(file2);
-        
+
         state.search_query = "matrix".to_string();
         let filtered = state.filtered_files();
         assert_eq!(filtered.len(), 1);
@@ -650,10 +657,12 @@ mod tests {
     #[test]
     fn test_app_state_selected_file() {
         let mut state = AppState::new();
-        state.files.push(MediaFile::new(PathBuf::from("/test/movie.mkv")));
-        
+        state
+            .files
+            .push(MediaFile::new(PathBuf::from("/test/movie.mkv")));
+
         assert!(state.selected_file().is_none());
-        
+
         state.selected_file_index = Some(0);
         assert!(state.selected_file().is_some());
     }
@@ -661,47 +670,49 @@ mod tests {
     #[test]
     fn test_app_state_selected_file_out_of_bounds() {
         let mut state = AppState::new();
-        state.files.push(MediaFile::new(PathBuf::from("/test/movie.mkv")));
+        state
+            .files
+            .push(MediaFile::new(PathBuf::from("/test/movie.mkv")));
         state.selected_file_index = Some(5);
-        
+
         assert!(state.selected_file().is_none());
     }
 
     #[test]
     fn test_app_state_files_with_matches() {
         let mut state = AppState::new();
-        
+
         let mut matched = MediaFile::new(PathBuf::from("/test/movie1.mkv"));
         matched.matched_metadata = Some(MediaMetadata::default());
-        
+
         let unmatched = MediaFile::new(PathBuf::from("/test/movie2.mkv"));
-        
+
         state.files.push(matched);
         state.files.push(unmatched);
-        
+
         assert_eq!(state.files_with_matches(), 1);
     }
 
     #[test]
     fn test_app_state_files_ready_for_rename() {
         let mut state = AppState::new();
-        
+
         let mut ready = MediaFile::new(PathBuf::from("/test/movie1.mkv"));
         ready.is_selected = true;
         ready.new_filename = Some("New Name.mkv".to_string());
-        
+
         let mut not_selected = MediaFile::new(PathBuf::from("/test/movie2.mkv"));
         not_selected.is_selected = false;
         not_selected.new_filename = Some("New Name 2.mkv".to_string());
-        
+
         let mut no_new_name = MediaFile::new(PathBuf::from("/test/movie3.mkv"));
         no_new_name.is_selected = true;
         no_new_name.new_filename = None;
-        
+
         state.files.push(ready);
         state.files.push(not_selected);
         state.files.push(no_new_name);
-        
+
         assert_eq!(state.files_ready_for_rename().len(), 1);
     }
 
@@ -723,8 +734,7 @@ mod tests {
         let mut state = AppState::new();
         state.using_default_key = false;
         state.tmdb_api_key = "custom_key_12345".to_string();
-        
+
         assert_eq!(state.effective_api_key(), "custom_key_12345");
     }
 }
-

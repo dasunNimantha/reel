@@ -64,6 +64,20 @@ cargo build --release
 - Rust 1.70+
 - Linux: `libgtk-3-dev libxkbcommon-dev libwayland-dev libvulkan-dev libssl-dev pkg-config`
 
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/reel.git
+cd reel
+
+# Setup git hooks (runs cargo fmt and clippy on commit)
+./setup-hooks.sh
+
+# Build and run
+cargo run
+```
+
 ### Building with Custom API Key
 
 ```bash

@@ -23,4 +23,3 @@ pub use app::ReelApp;
 pub use message::Message;
 pub use model::{AppState, MediaFile, MediaType};
 pub use theme::ThemeMode;
-

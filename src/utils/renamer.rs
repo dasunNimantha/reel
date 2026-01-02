@@ -17,11 +17,11 @@ pub fn generate_filename(
 
     // Replace placeholders
     result = result.replace("{title}", &sanitize_filename(&metadata.title));
-    
+
     // Year - prefer metadata, fallback to parsed info
-    let year = metadata.year.or_else(|| {
-        file.parsed_info.as_ref().and_then(|p| p.year)
-    });
+    let year = metadata
+        .year
+        .or_else(|| file.parsed_info.as_ref().and_then(|p| p.year));
     if let Some(y) = year {
         result = result.replace("{year}", &y.to_string());
     } else {
@@ -37,9 +37,9 @@ pub fn generate_filename(
     }
 
     // Season - prefer metadata, fallback to parsed info
-    let season = metadata.season_number.or_else(|| {
-        file.parsed_info.as_ref().and_then(|p| p.season)
-    });
+    let season = metadata
+        .season_number
+        .or_else(|| file.parsed_info.as_ref().and_then(|p| p.season));
     if let Some(s) = season {
         result = result.replace("{season:02}", &format!("{:02}", s));
         result = result.replace("{season}", &s.to_string());
@@ -50,9 +50,9 @@ pub fn generate_filename(
     }
 
     // Episode - prefer metadata, fallback to parsed info
-    let episode = metadata.episode_number.or_else(|| {
-        file.parsed_info.as_ref().and_then(|p| p.episode)
-    });
+    let episode = metadata
+        .episode_number
+        .or_else(|| file.parsed_info.as_ref().and_then(|p| p.episode));
     if let Some(e) = episode {
         result = result.replace("{episode:02}", &format!("{:02}", e));
         result = result.replace("{episode}", &e.to_string());
@@ -63,7 +63,9 @@ pub fn generate_filename(
 
     // Episode title - prefer metadata, fallback to parsed info
     let ep_title = metadata.episode_title.clone().or_else(|| {
-        file.parsed_info.as_ref().and_then(|p| p.episode_title.clone())
+        file.parsed_info
+            .as_ref()
+            .and_then(|p| p.episode_title.clone())
     });
     if let Some(title) = ep_title {
         result = result.replace("{episode_title}", &sanitize_filename(&title));
@@ -73,21 +75,21 @@ pub fn generate_filename(
 
     // Clean up the result
     result = result.trim().to_string();
-    
+
     // Clean up orphan separators and dashes
     result = result.replace(" - .", "."); // Remove trailing " - " before extension
     result = result.replace(" -.", ".");
     result = result.replace("  - ", " ");
     result = result.replace(" -  ", " ");
-    
+
     // Remove duplicate spaces
     while result.contains("  ") {
         result = result.replace("  ", " ");
     }
-    
+
     // Remove trailing dash or hyphen before extension
     if result.ends_with(" -") {
-        result = result[..result.len()-2].to_string();
+        result = result[..result.len() - 2].to_string();
     }
 
     // Add extension
@@ -98,16 +100,16 @@ pub fn generate_filename(
 fn sanitize_filename(s: &str) -> String {
     let invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|'];
     let mut result = s.to_string();
-    
+
     for c in invalid_chars {
         result = result.replace(c, "");
     }
-    
+
     // Replace multiple spaces with single space
     while result.contains("  ") {
         result = result.replace("  ", " ");
     }
-    
+
     result.trim().to_string()
 }
 
@@ -151,7 +153,11 @@ pub async fn rename_files(
             .map_err(|e| format!("Failed to rename {}: {}", old_path.display(), e))?;
 
         results.push((
-            old_path.file_name().unwrap_or_default().to_string_lossy().to_string(),
+            old_path
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string(),
             new_filename,
         ));
     }
@@ -267,7 +273,9 @@ mod tests {
             title: "The Matrix".to_string(),
             original_title: Some("The Matrix".to_string()),
             year: Some(1999),
-            overview: Some("A computer hacker learns about the true nature of reality.".to_string()),
+            overview: Some(
+                "A computer hacker learns about the true nature of reality.".to_string(),
+            ),
             poster_path: None,
             backdrop_path: None,
             vote_average: Some(8.7),
@@ -355,7 +363,9 @@ mod tests {
             title: "Pilot".to_string(),
             original_title: None,
             year: Some(2008),
-            overview: Some("Walter White, a chemistry teacher, discovers he has cancer.".to_string()),
+            overview: Some(
+                "Walter White, a chemistry teacher, discovers he has cancer.".to_string(),
+            ),
             poster_path: None,
             backdrop_path: None,
             vote_average: Some(9.5),
@@ -470,12 +480,12 @@ mod tests {
     fn test_generate_preview_multiple_files() {
         let mut movie = create_movie_file("The.Matrix.1999.mkv");
         movie.matched_metadata = Some(create_movie_metadata());
-        
+
         let mut tv = create_tv_file("Breaking.Bad.S01E01.mkv");
         tv.matched_metadata = Some(create_tv_metadata());
-        
+
         let unmatched = create_movie_file("Unknown.mkv");
-        
+
         let files = vec![movie, tv, unmatched];
         let pattern = RenamePattern::default();
 
@@ -521,4 +531,3 @@ mod tests {
         assert_eq!(patterns[2].name, "Jellyfin");
     }
 }
-

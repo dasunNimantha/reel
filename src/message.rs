@@ -10,9 +10,9 @@ pub enum Message {
     // File management
     AddFiles,
     AddFolder,
-    RefreshFiles,  // Rescan current directory
+    RefreshFiles, // Rescan current directory
     FilesAdded(Result<Vec<MediaFile>, String>),
-    FolderAdded(Result<Vec<MediaFile>, String>),  // Replaces existing files
+    FolderAdded(Result<Vec<MediaFile>, String>), // Replaces existing files
     FileSelected(usize),
     FileSearchChanged(String),
     RemoveFile(usize),
@@ -27,7 +27,7 @@ pub enum Message {
 
     // TMDB Search
     TmdbApiKeyChanged(String),
-    UseDefaultApiKey,  // Switch back to built-in API key
+    UseDefaultApiKey, // Switch back to built-in API key
     VerifyApiKey,
     ApiKeyVerified(bool), // true = valid, false = invalid
     SearchTmdb(String),
@@ -50,7 +50,7 @@ pub enum Message {
     HideRenamePreview,
     ExecuteRename,
     RenameCompleted(Result<Vec<(String, String)>, String>), // (old, new) pairs
-    
+
     // Settings
     SaveApiKey,
     LoadApiKey,
@@ -62,4 +62,3 @@ pub enum Message {
     // Window
     CloseRequested,
 }
-

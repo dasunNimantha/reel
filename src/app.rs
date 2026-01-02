@@ -24,7 +24,7 @@ impl Application for ReelApp {
     fn new(_flags: ()) -> (Self, Command<Message>) {
         let settings = AppSettings::load();
         let mut state = AppState::new();
-        
+
         // Load saved API key if exists (overrides default)
         if let Some(key) = settings.get_api_key() {
             if !key.is_empty() {
@@ -48,7 +48,6 @@ impl Application for ReelApp {
                 async move {
                     // Small delay to let the UI initialize first
                     tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-                    ()
                 },
                 |_| Message::VerifyApiKey,
             )
@@ -83,14 +82,17 @@ impl Application for ReelApp {
                 let last_dir = self.settings.last_input_directory.clone();
                 Command::perform(
                     async move {
-                        let mut dialog = rfd::AsyncFileDialog::new()
-                            .add_filter("Video Files", &["mkv", "mp4", "avi", "mov", "wmv", "flv", "webm", "m4v"]);
+                        let mut dialog = rfd::AsyncFileDialog::new().add_filter(
+                            "Video Files",
+                            &["mkv", "mp4", "avi", "mov", "wmv", "flv", "webm", "m4v"],
+                        );
                         if let Some(dir) = last_dir {
                             dialog = dialog.set_directory(&dir);
                         }
                         match dialog.pick_files().await {
                             Some(handles) => {
-                                let paths: Vec<_> = handles.iter().map(|h| h.path().to_path_buf()).collect();
+                                let paths: Vec<_> =
+                                    handles.iter().map(|h| h.path().to_path_buf()).collect();
                                 file_scanner::scan_files(paths).await
                             }
                             None => Ok(Vec::new()),
@@ -116,7 +118,7 @@ impl Application for ReelApp {
                             None => Ok(Vec::new()),
                         }
                     },
-                    Message::FolderAdded,  // Different message for folder
+                    Message::FolderAdded, // Different message for folder
                 )
             }
 
@@ -125,9 +127,7 @@ impl Application for ReelApp {
                 if let Some(dir) = self.settings.last_input_directory.clone() {
                     self.state.status = "Refreshing files...".to_string();
                     Command::perform(
-                        async move {
-                            file_scanner::scan_directory(dir).await
-                        },
+                        async move { file_scanner::scan_directory(dir).await },
                         Message::FolderAdded,
                     )
                 } else {
@@ -150,10 +150,11 @@ impl Application for ReelApp {
 
                             // Auto-detect media types, parse filenames, and select all by default
                             for file in &mut new_files {
-                                let (media_type, parsed_info) = filename_parser::parse_filename(&file.filename);
+                                let (media_type, parsed_info) =
+                                    filename_parser::parse_filename(&file.filename);
                                 file.media_type = media_type;
                                 file.parsed_info = Some(parsed_info);
-                                file.is_selected = true;  // Select by default
+                                file.is_selected = true; // Select by default
                             }
 
                             // Append to existing files
@@ -182,22 +183,24 @@ impl Application for ReelApp {
 
                             // Auto-detect media types, parse filenames, and select all by default
                             for file in &mut new_files {
-                                let (media_type, parsed_info) = filename_parser::parse_filename(&file.filename);
+                                let (media_type, parsed_info) =
+                                    filename_parser::parse_filename(&file.filename);
                                 file.media_type = media_type;
                                 file.parsed_info = Some(parsed_info);
-                                file.is_selected = true;  // Select by default
+                                file.is_selected = true; // Select by default
                             }
 
                             // REPLACE existing files (not append)
                             self.state.files = new_files;
-                            
+
                             // Clear all search/selection state
                             self.state.search_query.clear();
                             self.state.search_input.clear();
                             self.state.search_results.clear();
                             self.state.selected_file_index = None;
-                            
-                            self.state.status = format!("Loaded {} file(s)", self.state.files.len());
+
+                            self.state.status =
+                                format!("Loaded {} file(s)", self.state.files.len());
                         }
                     }
                     Err(e) => {
@@ -213,14 +216,14 @@ impl Application for ReelApp {
                     let (actual_index, file) = filtered[index];
                     let parsed_title = file.parsed_info.as_ref().map(|p| p.title.clone());
                     let filename = file.filename.clone();
-                    
+
                     self.state.selected_file_index = Some(actual_index);
-                    
+
                     // Update search input with parsed title
                     if let Some(title) = parsed_title {
                         self.state.search_input = title;
                     }
-                    
+
                     // Update status to show selected file
                     self.state.status = format!("Selected: {}", filename);
                 }
@@ -317,13 +320,11 @@ impl Application for ReelApp {
                     self.state.api_key_valid = None;
                     return Command::none();
                 }
-                
+
                 self.state.api_key_verifying = true;
-                
+
                 Command::perform(
-                    async move {
-                        tmdb::verify_api_key(&api_key).await
-                    },
+                    async move { tmdb::verify_api_key(&api_key).await },
                     Message::ApiKeyVerified,
                 )
             }
@@ -348,17 +349,19 @@ impl Application for ReelApp {
 
                 self.state.search_loading = true;
                 self.state.search_results.clear();
-                let media_type = self.state.selected_file()
+                let media_type = self
+                    .state
+                    .selected_file()
                     .map(|f| f.media_type)
                     .unwrap_or(MediaType::Unknown);
-                let year = self.state.selected_file()
+                let year = self
+                    .state
+                    .selected_file()
                     .and_then(|f| f.parsed_info.as_ref())
                     .and_then(|p| p.year);
 
                 Command::perform(
-                    async move {
-                        tmdb::search_media(&api_key, &query, media_type, year).await
-                    },
+                    async move { tmdb::search_media(&api_key, &query, media_type, year).await },
                     Message::TmdbSearchCompleted,
                 )
             }
@@ -386,7 +389,11 @@ impl Application for ReelApp {
             Message::ApplySearchResult(result_index) => {
                 if let Some(result) = self.state.search_results.get(result_index).cloned() {
                     // Get all selected files to apply this result (regardless of existing metadata)
-                    let selected_files: Vec<_> = self.state.files.iter().enumerate()
+                    let selected_files: Vec<_> = self
+                        .state
+                        .files
+                        .iter()
+                        .enumerate()
                         .filter(|(_, f)| f.is_selected)
                         .map(|(i, f)| {
                             let season = f.parsed_info.as_ref().and_then(|p| p.season);
@@ -394,25 +401,26 @@ impl Application for ReelApp {
                             (i, season, episode)
                         })
                         .collect();
-                    
+
                     // If no selected files, try to use the focused file
-                    let files_to_apply: Vec<(usize, Option<u32>, Option<u32>)> = if selected_files.is_empty() {
-                        if let Some(idx) = self.state.selected_file_index {
-                            if let Some(file) = self.state.files.get(idx) {
-                                let season = file.parsed_info.as_ref().and_then(|p| p.season);
-                                let episode = file.parsed_info.as_ref().and_then(|p| p.episode);
-                                vec![(idx, season, episode)]
+                    let files_to_apply: Vec<(usize, Option<u32>, Option<u32>)> =
+                        if selected_files.is_empty() {
+                            if let Some(idx) = self.state.selected_file_index {
+                                if let Some(file) = self.state.files.get(idx) {
+                                    let season = file.parsed_info.as_ref().and_then(|p| p.season);
+                                    let episode = file.parsed_info.as_ref().and_then(|p| p.episode);
+                                    vec![(idx, season, episode)]
+                                } else {
+                                    self.state.status = "No files to apply".to_string();
+                                    return Command::none();
+                                }
                             } else {
-                                self.state.status = "No files to apply".to_string();
+                                self.state.status = "Select files to apply this result".to_string();
                                 return Command::none();
                             }
                         } else {
-                            self.state.status = "Select files to apply this result".to_string();
-                            return Command::none();
-                        }
-                    } else {
-                        selected_files
-                    };
+                            selected_files
+                        };
 
                     // Update media type for all files
                     for (idx, _, _) in &files_to_apply {
@@ -424,28 +432,36 @@ impl Application for ReelApp {
                     let api_key = self.state.effective_api_key();
                     let count = files_to_apply.len();
                     self.state.search_loading = true;
-                    self.state.status = format!("Applying {} to {} file(s)...", result.title, count);
-                    
+                    self.state.status =
+                        format!("Applying {} to {} file(s)...", result.title, count);
+
                     // Batch fetch metadata for all files
                     return Command::perform(
                         async move {
                             use futures::future::join_all;
-                            
-                            let futures: Vec<_> = files_to_apply.iter().map(|(idx, season, episode)| {
-                                let api_key = api_key.clone();
-                                let result = result.clone();
-                                let idx = *idx;
-                                let season = *season;
-                                let episode = *episode;
-                                
-                                async move {
-                                    match tmdb::fetch_metadata(&api_key, &result, season, episode).await {
-                                        Ok(metadata) => (idx, Ok(metadata)),
-                                        Err(e) => (idx, Err(e)),
+
+                            let futures: Vec<_> = files_to_apply
+                                .iter()
+                                .map(|(idx, season, episode)| {
+                                    let api_key = api_key.clone();
+                                    let result = result.clone();
+                                    let idx = *idx;
+                                    let season = *season;
+                                    let episode = *episode;
+
+                                    async move {
+                                        match tmdb::fetch_metadata(
+                                            &api_key, &result, season, episode,
+                                        )
+                                        .await
+                                        {
+                                            Ok(metadata) => (idx, Ok(metadata)),
+                                            Err(e) => (idx, Err(e)),
+                                        }
                                     }
-                                }
-                            }).collect();
-                            
+                                })
+                                .collect();
+
                             join_all(futures).await
                         },
                         Message::BatchMetadataFetched,
@@ -453,14 +469,18 @@ impl Application for ReelApp {
                 }
                 Command::none()
             }
-            
+
             Message::BatchMetadataFetched(results) => {
                 self.state.search_loading = false;
                 let mut success_count = 0;
                 for (index, result) in results {
                     if let Ok(metadata) = result {
                         if let Some(file) = self.state.files.get_mut(index) {
-                            let new_name = renamer::generate_filename(file, &metadata, &self.state.rename_pattern);
+                            let new_name = renamer::generate_filename(
+                                file,
+                                &metadata,
+                                &self.state.rename_pattern,
+                            );
                             file.new_filename = Some(new_name);
                             file.matched_metadata = Some(metadata);
                             success_count += 1;
@@ -489,7 +509,11 @@ impl Application for ReelApp {
                     Ok(metadata) => {
                         if let Some(file) = self.state.files.get_mut(file_index) {
                             // Generate new filename
-                            let new_name = renamer::generate_filename(file, &metadata, &self.state.rename_pattern);
+                            let new_name = renamer::generate_filename(
+                                file,
+                                &metadata,
+                                &self.state.rename_pattern,
+                            );
                             file.new_filename = Some(new_name);
                             file.matched_metadata = Some(metadata);
                         }
@@ -511,11 +535,19 @@ impl Application for ReelApp {
 
                 self.state.loading = true;
                 self.state.status = "Matching files (optimized batch mode)...".to_string();
-                let files_info: Vec<_> = self.state.files.iter().enumerate()
+                let files_info: Vec<_> = self
+                    .state
+                    .files
+                    .iter()
+                    .enumerate()
                     .filter(|(_, f)| f.matched_metadata.is_none())
                     .map(|(i, f)| {
-                        let mut title = f.parsed_info.as_ref().map(|p| p.title.clone()).unwrap_or_default();
-                        
+                        let mut title = f
+                            .parsed_info
+                            .as_ref()
+                            .map(|p| p.title.clone())
+                            .unwrap_or_default();
+
                         // If title is empty but it's a TV show, try to use parent folder name
                         if title.is_empty() && f.media_type == MediaType::TvShow {
                             if let Some(parent) = f.path.parent() {
@@ -524,12 +556,12 @@ impl Application for ReelApp {
                                 }
                             }
                         }
-                        
+
                         let year = f.parsed_info.as_ref().and_then(|p| p.year);
                         let season = f.parsed_info.as_ref().and_then(|p| p.season);
                         let episode = f.parsed_info.as_ref().and_then(|p| p.episode);
                         let media_type = f.media_type;
-                        
+
                         tmdb::BatchFileInfo {
                             index: i,
                             title,
@@ -543,9 +575,7 @@ impl Application for ReelApp {
 
                 // Use optimized batch matching
                 Command::perform(
-                    async move {
-                        tmdb::batch_match_files(&api_key, files_info).await
-                    },
+                    async move { tmdb::batch_match_files(&api_key, files_info).await },
                     Message::AutoMatchCompleted,
                 )
             }
@@ -557,7 +587,11 @@ impl Application for ReelApp {
                 for (index, result) in results {
                     if let Ok(metadata) = result {
                         if let Some(file) = self.state.files.get_mut(index) {
-                            let new_name = renamer::generate_filename(file, &metadata, &self.state.rename_pattern);
+                            let new_name = renamer::generate_filename(
+                                file,
+                                &metadata,
+                                &self.state.rename_pattern,
+                            );
                             file.new_filename = Some(new_name);
                             file.matched_metadata = Some(metadata);
                             success_count += 1;
@@ -566,9 +600,13 @@ impl Application for ReelApp {
                 }
                 let failed = total - success_count;
                 if failed > 0 {
-                    self.state.status = format!("Matched {} of {} files ({} need manual search)", success_count, total, failed);
+                    self.state.status = format!(
+                        "Matched {} of {} files ({} need manual search)",
+                        success_count, total, failed
+                    );
                 } else {
-                    self.state.status = format!("Successfully matched all {} files!", success_count);
+                    self.state.status =
+                        format!("Successfully matched all {} files!", success_count);
                 }
                 Command::none()
             }
@@ -579,7 +617,8 @@ impl Application for ReelApp {
                 // Regenerate filenames for matched files
                 for file in &mut self.state.files {
                     if let Some(metadata) = &file.matched_metadata {
-                        let new_name = renamer::generate_filename(file, metadata, &self.state.rename_pattern);
+                        let new_name =
+                            renamer::generate_filename(file, metadata, &self.state.rename_pattern);
                         file.new_filename = Some(new_name);
                     }
                 }
@@ -589,7 +628,8 @@ impl Application for ReelApp {
             Message::GenerateNewFilenames => {
                 for file in &mut self.state.files {
                     if let Some(metadata) = &file.matched_metadata {
-                        let new_name = renamer::generate_filename(file, metadata, &self.state.rename_pattern);
+                        let new_name =
+                            renamer::generate_filename(file, metadata, &self.state.rename_pattern);
                         file.new_filename = Some(new_name);
                     }
                 }
@@ -631,11 +671,15 @@ impl Application for ReelApp {
 
             Message::ShowRenamePreview => {
                 // Only preview selected files that have metadata
-                let selected_files: Vec<_> = self.state.files.iter()
+                let selected_files: Vec<_> = self
+                    .state
+                    .files
+                    .iter()
                     .filter(|f| f.is_selected)
                     .cloned()
                     .collect();
-                let preview = renamer::generate_preview(&selected_files, &self.state.rename_pattern);
+                let preview =
+                    renamer::generate_preview(&selected_files, &self.state.rename_pattern);
                 self.state.rename_preview = preview;
                 self.state.show_rename_confirm = true;
                 Command::none()
@@ -649,12 +693,17 @@ impl Application for ReelApp {
 
             Message::ExecuteRename => {
                 self.state.show_rename_confirm = false;
-                
+
                 // Only rename selected files that have a new filename
-                let files_to_rename: Vec<_> = self.state.files.iter()
+                let files_to_rename: Vec<_> = self
+                    .state
+                    .files
+                    .iter()
                     .filter(|f| f.is_selected)
                     .filter_map(|f| {
-                        f.new_filename.as_ref().map(|new| (f.path.clone(), new.clone()))
+                        f.new_filename
+                            .as_ref()
+                            .map(|new| (f.path.clone(), new.clone()))
                     })
                     .collect();
 
@@ -668,9 +717,7 @@ impl Application for ReelApp {
                 self.state.status = "Renaming files...".to_string();
 
                 Command::perform(
-                    async move {
-                        renamer::rename_files(files_to_rename, output_dir).await
-                    },
+                    async move { renamer::rename_files(files_to_rename, output_dir).await },
                     Message::RenameCompleted,
                 )
             }
@@ -680,28 +727,33 @@ impl Application for ReelApp {
                 match result {
                     Ok(renamed) => {
                         let count = renamed.len();
-                        
+
                         // Update renamed files with their new names
                         for (old_name, new_name) in &renamed {
-                            if let Some(file) = self.state.files.iter_mut().find(|f| f.filename == *old_name) {
+                            if let Some(file) = self
+                                .state
+                                .files
+                                .iter_mut()
+                                .find(|f| f.filename == *old_name)
+                            {
                                 // Update the filename to the new name
                                 file.filename = new_name.clone();
-                                
+
                                 // Update the path to the new location
                                 if let Some(ref output_dir) = self.state.output_directory {
                                     file.path = output_dir.join(new_name);
                                 } else if let Some(parent) = file.path.parent() {
                                     file.path = parent.join(new_name);
                                 }
-                                
+
                                 // Clear the new_filename since it's now applied
                                 file.new_filename = None;
-                                
+
                                 // Keep the metadata but mark as no longer needing rename
                                 file.is_selected = false;
                             }
                         }
-                        
+
                         self.state.status = format!("Successfully renamed {} file(s)", count);
                     }
                     Err(e) => {
@@ -715,21 +767,18 @@ impl Application for ReelApp {
             Message::SaveApiKey => {
                 // Only save if user entered their own key
                 if !self.state.using_default_key {
-                    self.settings.set_api_key(Some(self.state.tmdb_api_key.clone()));
+                    self.settings
+                        .set_api_key(Some(self.state.tmdb_api_key.clone()));
                     let _ = self.settings.save();
                     self.state.status = "API key saved".to_string();
                 }
                 Command::none()
             }
 
-            Message::LoadApiKey => {
-                Command::perform(
-                    async {
-                        AppSettings::load().get_api_key()
-                    },
-                    Message::ApiKeyLoaded,
-                )
-            }
+            Message::LoadApiKey => Command::perform(
+                async { AppSettings::load().get_api_key() },
+                Message::ApiKeyLoaded,
+            ),
 
             Message::ApiKeyLoaded(key) => {
                 if let Some(k) = key {
@@ -747,13 +796,9 @@ impl Application for ReelApp {
                 Command::none()
             }
 
-            Message::Tick(_) => {
-                Command::none()
-            }
+            Message::Tick(_) => Command::none(),
 
-            Message::CloseRequested => {
-                window::close(window::Id::MAIN)
-            }
+            Message::CloseRequested => window::close(window::Id::MAIN),
         }
     }
 
@@ -766,12 +811,10 @@ impl Application for ReelApp {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        let mut subscriptions = vec![
-            event::listen_with(|event, _| match event {
-                Event::Window(_, window::Event::CloseRequested) => Some(Message::CloseRequested),
-                _ => None,
-            }),
-        ];
+        let mut subscriptions = vec![event::listen_with(|event, _| match event {
+            Event::Window(_, window::Event::CloseRequested) => Some(Message::CloseRequested),
+            _ => None,
+        })];
 
         if self.state.loading || self.state.search_loading {
             subscriptions.push(iced::time::every(Duration::from_millis(100)).map(Message::Tick));
@@ -780,4 +823,3 @@ impl Application for ReelApp {
         Subscription::batch(subscriptions)
     }
 }
-

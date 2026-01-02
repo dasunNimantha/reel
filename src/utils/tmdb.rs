@@ -19,11 +19,7 @@ impl TmdbClient {
 
     /// Verify API key is valid by making a test request
     pub async fn verify_api_key(&self) -> bool {
-        let url = format!(
-            "{}/configuration?api_key={}",
-            TMDB_BASE_URL,
-            self.api_key
-        );
+        let url = format!("{}/configuration?api_key={}", TMDB_BASE_URL, self.api_key);
 
         match self.client.get(&url).send().await {
             Ok(response) => response.status().is_success(),
@@ -32,7 +28,11 @@ impl TmdbClient {
     }
 
     /// Search for movies
-    pub async fn search_movies(&self, query: &str, year: Option<u32>) -> Result<Vec<SearchResult>, String> {
+    pub async fn search_movies(
+        &self,
+        query: &str,
+        year: Option<u32>,
+    ) -> Result<Vec<SearchResult>, String> {
         let mut url = format!(
             "{}/search/movie?api_key={}&query={}&include_adult=false",
             TMDB_BASE_URL,
@@ -60,7 +60,10 @@ impl TmdbClient {
             .map(|r| SearchResult {
                 tmdb_id: r.id,
                 title: r.title.unwrap_or_else(|| r.name.unwrap_or_default()),
-                year: r.release_date.as_ref().and_then(|d| d.split('-').next()?.parse().ok()),
+                year: r
+                    .release_date
+                    .as_ref()
+                    .and_then(|d| d.split('-').next()?.parse().ok()),
                 media_type: MediaType::Movie,
                 overview: r.overview,
                 poster_path: r.poster_path,
@@ -70,7 +73,11 @@ impl TmdbClient {
     }
 
     /// Search for TV shows
-    pub async fn search_tv(&self, query: &str, year: Option<u32>) -> Result<Vec<SearchResult>, String> {
+    pub async fn search_tv(
+        &self,
+        query: &str,
+        year: Option<u32>,
+    ) -> Result<Vec<SearchResult>, String> {
         let mut url = format!(
             "{}/search/tv?api_key={}&query={}&include_adult=false",
             TMDB_BASE_URL,
@@ -98,7 +105,10 @@ impl TmdbClient {
             .map(|r| SearchResult {
                 tmdb_id: r.id,
                 title: r.name.unwrap_or_else(|| r.title.unwrap_or_default()),
-                year: r.first_air_date.as_ref().and_then(|d| d.split('-').next()?.parse().ok()),
+                year: r
+                    .first_air_date
+                    .as_ref()
+                    .and_then(|d| d.split('-').next()?.parse().ok()),
                 media_type: MediaType::TvShow,
                 overview: r.overview,
                 poster_path: r.poster_path,
@@ -129,7 +139,9 @@ impl TmdbClient {
         Ok(response
             .results
             .into_iter()
-            .filter(|r| r.media_type.as_deref() == Some("movie") || r.media_type.as_deref() == Some("tv"))
+            .filter(|r| {
+                r.media_type.as_deref() == Some("movie") || r.media_type.as_deref() == Some("tv")
+            })
             .map(|r| {
                 let is_movie = r.media_type.as_deref() == Some("movie");
                 SearchResult {
@@ -140,11 +152,19 @@ impl TmdbClient {
                         r.name.unwrap_or_else(|| r.title.unwrap_or_default())
                     },
                     year: if is_movie {
-                        r.release_date.as_ref().and_then(|d| d.split('-').next()?.parse().ok())
+                        r.release_date
+                            .as_ref()
+                            .and_then(|d| d.split('-').next()?.parse().ok())
                     } else {
-                        r.first_air_date.as_ref().and_then(|d| d.split('-').next()?.parse().ok())
+                        r.first_air_date
+                            .as_ref()
+                            .and_then(|d| d.split('-').next()?.parse().ok())
                     },
-                    media_type: if is_movie { MediaType::Movie } else { MediaType::TvShow },
+                    media_type: if is_movie {
+                        MediaType::Movie
+                    } else {
+                        MediaType::TvShow
+                    },
                     overview: r.overview,
                     poster_path: r.poster_path,
                     vote_average: r.vote_average,
@@ -157,9 +177,7 @@ impl TmdbClient {
     pub async fn get_movie_details(&self, movie_id: u64) -> Result<MediaMetadata, String> {
         let url = format!(
             "{}/movie/{}?api_key={}",
-            TMDB_BASE_URL,
-            movie_id,
-            self.api_key
+            TMDB_BASE_URL, movie_id, self.api_key
         );
 
         let movie: TmdbMovieDetails = self
@@ -176,7 +194,10 @@ impl TmdbClient {
             tmdb_id: movie.id,
             title: movie.title,
             original_title: movie.original_title,
-            year: movie.release_date.as_ref().and_then(|d| d.split('-').next()?.parse().ok()),
+            year: movie
+                .release_date
+                .as_ref()
+                .and_then(|d| d.split('-').next()?.parse().ok()),
             overview: movie.overview,
             poster_path: movie.poster_path,
             backdrop_path: movie.backdrop_path,
@@ -188,12 +209,7 @@ impl TmdbClient {
 
     /// Get TV show details
     pub async fn get_tv_details(&self, tv_id: u64) -> Result<MediaMetadata, String> {
-        let url = format!(
-            "{}/tv/{}?api_key={}",
-            TMDB_BASE_URL,
-            tv_id,
-            self.api_key
-        );
+        let url = format!("{}/tv/{}?api_key={}", TMDB_BASE_URL, tv_id, self.api_key);
 
         let tv: TmdbTvDetails = self
             .client
@@ -209,7 +225,10 @@ impl TmdbClient {
             tmdb_id: tv.id,
             title: tv.name.clone(),
             original_title: tv.original_name,
-            year: tv.first_air_date.as_ref().and_then(|d| d.split('-').next()?.parse().ok()),
+            year: tv
+                .first_air_date
+                .as_ref()
+                .and_then(|d| d.split('-').next()?.parse().ok()),
             overview: tv.overview,
             poster_path: tv.poster_path,
             backdrop_path: tv.backdrop_path,
@@ -233,11 +252,7 @@ impl TmdbClient {
         // Then get the episode details
         let url = format!(
             "{}/tv/{}/season/{}/episode/{}?api_key={}",
-            TMDB_BASE_URL,
-            tv_id,
-            season,
-            episode,
-            self.api_key
+            TMDB_BASE_URL, tv_id, season, episode, self.api_key
         );
 
         let ep: TmdbEpisodeDetails = self
@@ -434,26 +449,29 @@ pub async fn batch_match_files(
     api_key: &str,
     files: Vec<BatchFileInfo>,
 ) -> Vec<(usize, Result<MediaMetadata, String>)> {
-    use std::collections::HashMap;
     use futures::future::join_all;
-    
+    use std::collections::HashMap;
+
     if api_key.is_empty() {
-        return files.iter().map(|f| (f.index, Err("TMDB API key not set".to_string()))).collect();
+        return files
+            .iter()
+            .map(|f| (f.index, Err("TMDB API key not set".to_string())))
+            .collect();
     }
 
     let client = TmdbClient::new(api_key.to_string());
     let mut results: Vec<(usize, Result<MediaMetadata, String>)> = Vec::new();
-    
+
     // Separate movies and TV shows
     let mut movies: Vec<BatchFileInfo> = Vec::new();
     let mut tv_shows: HashMap<String, Vec<BatchFileInfo>> = HashMap::new();
-    
+
     for file in files {
         if file.title.is_empty() {
             results.push((file.index, Err("No title parsed".to_string())));
             continue;
         }
-        
+
         match file.media_type {
             MediaType::Movie | MediaType::Unknown => movies.push(file),
             MediaType::TvShow => {
@@ -462,7 +480,7 @@ pub async fn batch_match_files(
             }
         }
     }
-    
+
     // Process movies (each needs individual search)
     for movie in movies {
         match client.search_movies(&movie.title, movie.year).await {
@@ -478,15 +496,15 @@ pub async fn batch_match_files(
         // Small delay for movies
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
-    
+
     // Process TV shows - grouped by title
     for (_, episodes) in tv_shows {
         if episodes.is_empty() {
             continue;
         }
-        
+
         let first = &episodes[0];
-        
+
         // Search for the show ONCE
         let search_result = match client.search_tv(&first.title, first.year).await {
             Ok(r) if !r.is_empty() => r[0].clone(),
@@ -503,7 +521,7 @@ pub async fn batch_match_files(
                 continue;
             }
         };
-        
+
         // Get show details ONCE
         let show_details = match client.get_tv_details(search_result.tmdb_id).await {
             Ok(d) => d,
@@ -514,77 +532,79 @@ pub async fn batch_match_files(
                 continue;
             }
         };
-        
+
         // Fetch all episodes concurrently (in batches to avoid rate limits)
         let batch_size = 5; // 5 concurrent requests
         for chunk in episodes.chunks(batch_size) {
-            let futures: Vec<_> = chunk.iter().map(|ep| {
-                let client = TmdbClient::new(api_key.to_string());
-                let tmdb_id = search_result.tmdb_id;
-                let show = show_details.clone();
-                let season = ep.season;
-                let episode_num = ep.episode;
-                let index = ep.index;
-                
-                async move {
-                    if let (Some(s), Some(e)) = (season, episode_num) {
-                        // Fetch episode directly (without re-fetching show details)
-                        let url = format!(
-                            "{}/tv/{}/season/{}/episode/{}?api_key={}",
-                            TMDB_BASE_URL,
-                            tmdb_id,
-                            s,
-                            e,
-                            client.api_key
-                        );
-                        
-                        match client.client.get(&url).send().await {
-                            Ok(response) => {
-                                match response.json::<TmdbEpisodeDetails>().await {
-                                    Ok(ep_details) => {
-                                        let metadata = MediaMetadata {
-                                            tmdb_id,
-                                            title: show.title.clone(),
-                                            original_title: show.original_title.clone(),
-                                            year: show.year,
-                                            overview: ep_details.overview,
-                                            poster_path: ep_details.still_path.or(show.poster_path.clone()),
-                                            backdrop_path: show.backdrop_path.clone(),
-                                            vote_average: ep_details.vote_average.or(show.vote_average),
-                                            genres: show.genres.clone(),
-                                            season_number: Some(s),
-                                            episode_number: Some(e),
-                                            episode_title: Some(ep_details.name),
-                                            air_date: ep_details.air_date,
-                                            show_name: show.show_name.clone(),
-                                        };
-                                        (index, Ok(metadata))
-                                    }
-                                    Err(_) => {
-                                        // Episode not found, use show details with parsed info
-                                        let mut metadata = show.clone();
-                                        metadata.season_number = Some(s);
-                                        metadata.episode_number = Some(e);
-                                        (index, Ok(metadata))
+            let futures: Vec<_> = chunk
+                .iter()
+                .map(|ep| {
+                    let client = TmdbClient::new(api_key.to_string());
+                    let tmdb_id = search_result.tmdb_id;
+                    let show = show_details.clone();
+                    let season = ep.season;
+                    let episode_num = ep.episode;
+                    let index = ep.index;
+
+                    async move {
+                        if let (Some(s), Some(e)) = (season, episode_num) {
+                            // Fetch episode directly (without re-fetching show details)
+                            let url = format!(
+                                "{}/tv/{}/season/{}/episode/{}?api_key={}",
+                                TMDB_BASE_URL, tmdb_id, s, e, client.api_key
+                            );
+
+                            match client.client.get(&url).send().await {
+                                Ok(response) => {
+                                    match response.json::<TmdbEpisodeDetails>().await {
+                                        Ok(ep_details) => {
+                                            let metadata = MediaMetadata {
+                                                tmdb_id,
+                                                title: show.title.clone(),
+                                                original_title: show.original_title.clone(),
+                                                year: show.year,
+                                                overview: ep_details.overview,
+                                                poster_path: ep_details
+                                                    .still_path
+                                                    .or(show.poster_path.clone()),
+                                                backdrop_path: show.backdrop_path.clone(),
+                                                vote_average: ep_details
+                                                    .vote_average
+                                                    .or(show.vote_average),
+                                                genres: show.genres.clone(),
+                                                season_number: Some(s),
+                                                episode_number: Some(e),
+                                                episode_title: Some(ep_details.name),
+                                                air_date: ep_details.air_date,
+                                                show_name: show.show_name.clone(),
+                                            };
+                                            (index, Ok(metadata))
+                                        }
+                                        Err(_) => {
+                                            // Episode not found, use show details with parsed info
+                                            let mut metadata = show.clone();
+                                            metadata.season_number = Some(s);
+                                            metadata.episode_number = Some(e);
+                                            (index, Ok(metadata))
+                                        }
                                     }
                                 }
+                                Err(e) => (index, Err(format!("Network error: {}", e))),
                             }
-                            Err(e) => (index, Err(format!("Network error: {}", e))),
+                        } else {
+                            (index, Ok(show.clone()))
                         }
-                    } else {
-                        (index, Ok(show.clone()))
                     }
-                }
-            }).collect();
-            
+                })
+                .collect();
+
             let batch_results = join_all(futures).await;
             results.extend(batch_results);
-            
+
             // Small delay between batches
             tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
         }
     }
-    
+
     results
 }
-

@@ -10,19 +10,16 @@ pub fn parse_filename(filename: &str) -> (MediaType, ParsedMediaInfo) {
         .unwrap_or(filename);
 
     // Replace common separators with spaces
-    let cleaned = name
-        .replace('.', " ")
-        .replace('_', " ")
-        .replace('-', " ");
+    let cleaned = name.replace(['.', '_', '-'], " ");
 
     let mut info = ParsedMediaInfo::default();
 
     // Try to detect TV show patterns - ordered by specificity (most specific first)
-    
+
     // Pattern 1: S01E01, 1x01 - has both season and episode
     let season_episode_patterns = [
-        r"(?i)[Ss](\d{1,2})[Ee](\d{1,2})",  // S01E01
-        r"(?i)(\d{1,2})[xX](\d{1,2})",       // 1x01
+        r"(?i)[Ss](\d{1,2})[Ee](\d{1,2})",              // S01E01
+        r"(?i)(\d{1,2})[xX](\d{1,2})",                  // 1x01
         r"(?i)Season\s*(\d{1,2}).*Episode\s*(\d{1,2})", // Season 1 Episode 1
     ];
 
@@ -32,19 +29,19 @@ pub fn parse_filename(filename: &str) -> (MediaType, ParsedMediaInfo) {
                 if let (Some(season), Some(episode)) = (caps.get(1), caps.get(2)) {
                     info.season = season.as_str().parse().ok();
                     info.episode = episode.as_str().parse().ok();
-                    
+
                     // Extract title (everything before the season/episode)
                     if let Some(m) = re.find(&cleaned) {
                         let title = cleaned[..m.start()].trim();
                         info.title = clean_title(title);
-                        
+
                         // Try to get episode title (after S01E01)
                         let after = cleaned[m.end()..].trim();
                         if !after.is_empty() {
                             info.episode_title = Some(extract_episode_title(after));
                         }
                     }
-                    
+
                     extract_quality_info(&cleaned, &mut info);
                     return (MediaType::TvShow, info);
                 }
@@ -54,9 +51,9 @@ pub fn parse_filename(filename: &str) -> (MediaType, ParsedMediaInfo) {
 
     // Pattern 2: Episode X only (assume season 1)
     let episode_only_patterns = [
-        r"(?i)Episode\s*(\d{1,3})",  // Episode 1, Episode 01
-        r"(?i)\bEp\.?\s*(\d{1,3})",   // Ep 1, Ep.1, Ep01
-        r"(?i)\bE(\d{1,3})\b",        // E01 (standalone)
+        r"(?i)Episode\s*(\d{1,3})", // Episode 1, Episode 01
+        r"(?i)\bEp\.?\s*(\d{1,3})", // Ep 1, Ep.1, Ep01
+        r"(?i)\bE(\d{1,3})\b",      // E01 (standalone)
     ];
 
     for pattern in &episode_only_patterns {
@@ -65,19 +62,19 @@ pub fn parse_filename(filename: &str) -> (MediaType, ParsedMediaInfo) {
                 if let Some(episode) = caps.get(1) {
                     info.season = Some(1); // Default to season 1
                     info.episode = episode.as_str().parse().ok();
-                    
+
                     // Extract title (everything before the episode marker)
                     if let Some(m) = re.find(&cleaned) {
                         let title = cleaned[..m.start()].trim();
                         info.title = clean_title(title);
-                        
+
                         // Try to get episode title (after Episode X)
                         let after = cleaned[m.end()..].trim();
                         if !after.is_empty() {
                             info.episode_title = Some(extract_episode_title(after));
                         }
                     }
-                    
+
                     extract_quality_info(&cleaned, &mut info);
                     return (MediaType::TvShow, info);
                 }
@@ -104,7 +101,7 @@ pub fn parse_filename(filename: &str) -> (MediaType, ParsedMediaInfo) {
     // Fallback: treat as movie, use full name as title
     info.title = clean_title(&cleaned);
     extract_quality_info(&cleaned, &mut info);
-    
+
     (MediaType::Unknown, info)
 }
 
@@ -118,8 +115,8 @@ fn clean_title(title: &str) -> String {
         r"(?i)\b(aac|ac3|dts|dts-hd|atmos|truehd|flac|mp3)\b",
         r"(?i)\b(proper|repack|extended|unrated|directors cut)\b",
         r"(?i)\b(multi|dual|5\.1|7\.1)\b",
-        r"\[.*?\]",  // Anything in brackets
-        r"\(.*?\)",  // Anything in parentheses (except year which we already extracted)
+        r"\[.*?\]", // Anything in brackets
+        r"\(.*?\)", // Anything in parentheses (except year which we already extracted)
     ];
 
     let mut cleaned = title.to_string();
@@ -219,7 +216,9 @@ fn extract_quality_info(text: &str, info: &mut ParsedMediaInfo) {
             if let Some(group) = caps.get(1) {
                 let group_name = group.as_str();
                 // Filter out common false positives
-                let exclude = ["720p", "1080p", "2160p", "x264", "x265", "HEVC", "AAC", "DTS"];
+                let exclude = [
+                    "720p", "1080p", "2160p", "x264", "x265", "HEVC", "AAC", "DTS",
+                ];
                 if !exclude.iter().any(|&e| e.eq_ignore_ascii_case(group_name)) {
                     info.group = Some(group_name.to_string());
                 }
@@ -264,7 +263,8 @@ mod tests {
 
     #[test]
     fn test_parse_tv_show_1x01_format() {
-        let (media_type, info) = parse_filename("Friends.1x01.The.One.Where.Monica.Gets.a.Roommate.mkv");
+        let (media_type, info) =
+            parse_filename("Friends.1x01.The.One.Where.Monica.Gets.a.Roommate.mkv");
         assert_eq!(media_type, MediaType::TvShow);
         assert_eq!(info.title, "Friends");
         assert_eq!(info.season, Some(1));
@@ -596,4 +596,3 @@ mod tests {
         assert_eq!(media_type, MediaType::Unknown);
     }
 }
-

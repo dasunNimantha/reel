@@ -37,8 +37,7 @@ impl AppSettings {
             }
             let contents = serde_json::to_string_pretty(self)
                 .map_err(|e| format!("Failed to serialize settings: {}", e))?;
-            fs::write(&path, contents)
-                .map_err(|e| format!("Failed to write settings: {}", e))?;
+            fs::write(&path, contents).map_err(|e| format!("Failed to write settings: {}", e))?;
         }
         Ok(())
     }
@@ -51,4 +50,3 @@ impl AppSettings {
         self.tmdb_api_key = key;
     }
 }
-

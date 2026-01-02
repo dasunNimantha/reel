@@ -1,12 +1,12 @@
 use crate::message::Message;
 use crate::model::{AppState, MediaType, RenamePattern};
 use crate::theme::{
-    get_colors, CardStyle, FileItemStyle, PanelStyle, 
-    PrimaryButtonStyle, SecondaryButtonStyle, SuccessButtonStyle, DangerButtonStyle,
-    TextInputStyle, ThemeMode, ToggleStyle, TooltipStyle,
+    get_colors, CardStyle, DangerButtonStyle, FileItemStyle, PanelStyle, PrimaryButtonStyle,
+    SecondaryButtonStyle, SuccessButtonStyle, TextInputStyle, ThemeMode, ToggleStyle, TooltipStyle,
 };
 use iced::widget::{
-    button, checkbox, column, container, row, scrollable, text, text_input, tooltip, Column, Row, Space,
+    button, checkbox, column, container, row, scrollable, text, text_input, tooltip, Column, Row,
+    Space,
 };
 use iced::{Alignment, Color, Element, Font, Length, Theme};
 use iced_aw::core::icons::bootstrap::{icon_to_text, Bootstrap};
@@ -35,14 +35,10 @@ pub fn build_view(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Messag
     .width(Length::Fill)
     .height(Length::Fill);
 
-    let main_content = column![
-        header,
-        Space::with_height(12),
-        content,
-    ]
-    .spacing(0)
-    .width(Length::Fill)
-    .height(Length::Fill);
+    let main_content = column![header, Space::with_height(12), content,]
+        .spacing(0)
+        .width(Length::Fill)
+        .height(Length::Fill);
 
     // Wrap in modal if showing rename preview
     let base: Element<Message> = container(main_content)
@@ -93,13 +89,19 @@ fn build_header(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Message>
             Space::with_width(Length::Fill),
             // Theme toggle
             row![
-                text(if theme_mode == ThemeMode::Dark { "Dark" } else { "Light" })
-                    .size(12)
-                    .style(iced::theme::Text::Color(colors.text_secondary)),
+                text(if theme_mode == ThemeMode::Dark {
+                    "Dark"
+                } else {
+                    "Light"
+                })
+                .size(12)
+                .style(iced::theme::Text::Color(colors.text_secondary)),
                 Space::with_width(8),
                 checkbox("", theme_mode == ThemeMode::Light)
                     .on_toggle(|_| Message::ToggleTheme)
-                    .style(iced::theme::Checkbox::Custom(Box::new(ToggleStyle { mode: theme_mode }))),
+                    .style(iced::theme::Checkbox::Custom(Box::new(ToggleStyle {
+                        mode: theme_mode
+                    }))),
             ]
             .spacing(0)
             .align_items(Alignment::Center),
@@ -110,7 +112,9 @@ fn build_header(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Message>
     )
     .width(Length::Fill)
     .padding([10, 16])
-    .style(iced::theme::Container::Custom(Box::new(CardStyle { mode: theme_mode })))
+    .style(iced::theme::Container::Custom(Box::new(CardStyle {
+        mode: theme_mode,
+    })))
     .into()
 }
 
@@ -126,12 +130,12 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
             .style(iced::theme::Text::Color(colors.text_primary)),
         Space::with_width(Length::Fill),
         // Refresh button
-        button(
-            icon_to_text(Bootstrap::ArrowClockwise).size(13.0)
-        )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
-        .padding([5, 8])
-        .on_press(Message::RefreshFiles),
+        button(icon_to_text(Bootstrap::ArrowClockwise).size(13.0))
+            .style(iced::theme::Button::Custom(Box::new(
+                SecondaryButtonStyle { mode: theme_mode }
+            )))
+            .padding([5, 8])
+            .on_press(Message::RefreshFiles),
         Space::with_width(6),
         button(
             row![
@@ -141,7 +145,9 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
             ]
             .align_items(Alignment::Center)
         )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Button::Custom(Box::new(
+            SecondaryButtonStyle { mode: theme_mode }
+        )))
         .padding([5, 10])
         .on_press(Message::AddFiles),
         Space::with_width(6),
@@ -153,7 +159,9 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
             ]
             .align_items(Alignment::Center)
         )
-        .style(iced::theme::Button::Custom(Box::new(PrimaryButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Button::Custom(Box::new(PrimaryButtonStyle {
+            mode: theme_mode
+        })))
         .padding([5, 10])
         .on_press(Message::AddFolder),
     ]
@@ -164,14 +172,16 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
     // Search bar
     let search_bar = text_input("Filter files...", &state.search_query)
         .on_input(Message::FileSearchChanged)
-        .style(iced::theme::TextInput::Custom(Box::new(TextInputStyle { mode: theme_mode })))
+        .style(iced::theme::TextInput::Custom(Box::new(TextInputStyle {
+            mode: theme_mode,
+        })))
         .padding(8)
         .size(13);
 
     // File list
     let filtered_files = state.filtered_files();
     let selected_count = state.files.iter().filter(|f| f.is_selected).count();
-    
+
     let file_list: Element<Message> = if filtered_files.is_empty() {
         container(
             column![
@@ -201,7 +211,7 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
             .enumerate()
             .map(|(display_idx, (actual_idx, file))| {
                 let is_focused = state.selected_file_index == Some(actual_idx);
-                
+
                 // Media type badge with text (more reliable than icons)
                 let type_text = match file.media_type {
                     MediaType::Movie => "MOV",
@@ -213,30 +223,34 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
                     MediaType::TvShow => colors.tv_color,
                     MediaType::Unknown => colors.text_disabled,
                 };
-                
+
                 let type_badge = container(
                     text(type_text)
                         .size(9)
-                        .style(iced::theme::Text::Color(Color::WHITE))
+                        .style(iced::theme::Text::Color(Color::WHITE)),
                 )
                 .padding([2, 5])
-                .style(iced::theme::Container::Custom(Box::new(BadgeStyle { color: type_color })));
+                .style(iced::theme::Container::Custom(Box::new(BadgeStyle {
+                    color: type_color,
+                })));
 
                 // Match indicator - use colored dot
                 let match_indicator: Element<Message> = if file.matched_metadata.is_some() {
                     container(
                         text("OK")
                             .size(9)
-                            .style(iced::theme::Text::Color(Color::WHITE))
+                            .style(iced::theme::Text::Color(Color::WHITE)),
                     )
                     .padding([2, 5])
-                    .style(iced::theme::Container::Custom(Box::new(BadgeStyle { color: colors.success })))
+                    .style(iced::theme::Container::Custom(Box::new(BadgeStyle {
+                        color: colors.success,
+                    })))
                     .into()
                 } else {
                     container(
                         text("--")
                             .size(9)
-                            .style(iced::theme::Text::Color(colors.text_disabled))
+                            .style(iced::theme::Text::Color(colors.text_disabled)),
                     )
                     .padding([2, 5])
                     .into()
@@ -246,7 +260,9 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
                 let selection_cb = checkbox("", file.is_selected)
                     .on_toggle(move |_| Message::ToggleFileSelection(actual_idx))
                     .size(14)
-                    .style(iced::theme::Checkbox::Custom(Box::new(SmallCheckboxStyle { mode: theme_mode })));
+                    .style(iced::theme::Checkbox::Custom(Box::new(
+                        SmallCheckboxStyle { mode: theme_mode },
+                    )));
 
                 let file_row = button(
                     container(
@@ -264,22 +280,23 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
                                     .style(iced::theme::Text::Color(colors.text_secondary)),
                             ]
                             .spacing(3)
-                            .width(Length::FillPortion(10)),  // Take most space but not all
+                            .width(Length::FillPortion(10)), // Take most space but not all
                             Space::with_width(8),
-                            container(match_indicator)
-                                .width(Length::Fixed(30.0)),  // Fixed width for badge
+                            container(match_indicator).width(Length::Fixed(30.0)), // Fixed width for badge
                         ]
                         .align_items(Alignment::Center)
                         .spacing(0)
-                        .width(Length::Fill)
+                        .width(Length::Fill),
                     )
                     .padding([8, 10])
                     .style(iced::theme::Container::Custom(Box::new(FileItemStyle {
                         mode: theme_mode,
                         is_selected: is_focused,
-                    })))
+                    }))),
                 )
-                .style(iced::theme::Button::Custom(Box::new(TransparentButtonStyle)))
+                .style(iced::theme::Button::Custom(Box::new(
+                    TransparentButtonStyle,
+                )))
                 .padding(0)
                 .on_press(Message::FileSelected(display_idx));
 
@@ -289,9 +306,9 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
 
         scrollable(
             Column::with_children(items)
-                .spacing(6)  // More spacing between files
+                .spacing(6) // More spacing between files
                 .width(Length::Fill)
-                .padding([0, 10, 0, 0])
+                .padding([0, 10, 0, 0]),
         )
         .height(Length::Fill)
         .into()
@@ -303,17 +320,23 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
         if !state.files.is_empty() {
             row![
                 button(text("Select All").size(11))
-                    .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+                    .style(iced::theme::Button::Custom(Box::new(
+                        SecondaryButtonStyle { mode: theme_mode }
+                    )))
                     .padding([5, 10])
                     .on_press(Message::SelectAllFiles),
                 Space::with_width(8),
                 button(text("Deselect All").size(11))
-                    .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+                    .style(iced::theme::Button::Custom(Box::new(
+                        SecondaryButtonStyle { mode: theme_mode }
+                    )))
                     .padding([5, 10])
                     .on_press(Message::DeselectAllFiles),
                 Space::with_width(Length::Fill),
                 button(icon_to_text(Bootstrap::Trash).size(13.0))
-                    .style(iced::theme::Button::Custom(Box::new(DangerButtonStyle { mode: theme_mode })))
+                    .style(iced::theme::Button::Custom(Box::new(DangerButtonStyle {
+                        mode: theme_mode
+                    })))
                     .padding([4, 8])
                     .on_press(Message::RemoveAllFiles),
             ]
@@ -354,12 +377,14 @@ fn build_file_list_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_,
         ]
         .spacing(0)
         .width(Length::Fill)
-        .height(Length::Fill)
+        .height(Length::Fill),
     )
     .width(Length::FillPortion(3))
     .height(Length::Fill)
     .padding(16)
-    .style(iced::theme::Container::Custom(Box::new(PanelStyle { mode: theme_mode })))
+    .style(iced::theme::Container::Custom(Box::new(PanelStyle {
+        mode: theme_mode,
+    })))
     .into()
 }
 
@@ -370,7 +395,11 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
     let has_files = !state.files.is_empty();
     // Check effective API key (includes default if using_default_key is true)
     let has_api_key = !state.effective_api_key().is_empty();
-    let unmatched_count = state.files.iter().filter(|f| f.matched_metadata.is_none()).count();
+    let unmatched_count = state
+        .files
+        .iter()
+        .filter(|f| f.matched_metadata.is_none())
+        .count();
 
     // API Key Section - with verification status in header and verify button next to input
     let api_status_text: Element<Message> = if state.api_key_verifying {
@@ -405,25 +434,25 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
 
     // Always show the same structure to avoid focus loss
     let verify_button = if can_verify {
-        button(
-            text("Verify").size(12)
-        )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
-        .padding([10, 16])
-        .on_press(Message::VerifyApiKey)
+        button(text("Verify").size(12))
+            .style(iced::theme::Button::Custom(Box::new(
+                SecondaryButtonStyle { mode: theme_mode },
+            )))
+            .padding([10, 16])
+            .on_press(Message::VerifyApiKey)
     } else if state.api_key_verifying {
-        button(
-            text("...").size(12)
-        )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
-        .padding([10, 16])
+        button(text("...").size(12))
+            .style(iced::theme::Button::Custom(Box::new(
+                SecondaryButtonStyle { mode: theme_mode },
+            )))
+            .padding([10, 16])
     } else {
         // Key is verified/valid - show disabled verify button
-        button(
-            text("Verify").size(12)
-        )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
-        .padding([10, 16])
+        button(text("Verify").size(12))
+            .style(iced::theme::Button::Custom(Box::new(
+                SecondaryButtonStyle { mode: theme_mode },
+            )))
+            .padding([10, 16])
     };
 
     // When using default key, show placeholder text (not copyable)
@@ -435,16 +464,18 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                     .size(12)
                     .style(iced::theme::Text::Color(colors.text_secondary))
             )
-            .style(iced::theme::Container::Custom(Box::new(DefaultKeyContainerStyle { mode: theme_mode })))
+            .style(iced::theme::Container::Custom(Box::new(
+                DefaultKeyContainerStyle { mode: theme_mode }
+            )))
             .padding(10)
             .width(Length::Fill),
             Space::with_width(8),
-            button(
-                text("Use Own Key").size(12)
-            )
-            .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
-            .padding([10, 16])
-            .on_press(Message::TmdbApiKeyChanged(String::new())),
+            button(text("Use Own Key").size(12))
+                .style(iced::theme::Button::Custom(Box::new(
+                    SecondaryButtonStyle { mode: theme_mode }
+                )))
+                .padding([10, 16])
+                .on_press(Message::TmdbApiKeyChanged(String::new())),
             Space::with_width(8),
             verify_button,
         ]
@@ -453,34 +484,35 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
     } else {
         // User is using their own key - show input with option to switch back to default
         let has_default = crate::model::has_default_api_key();
-        
-        let mut input_row = row![
-            text_input("Paste your TMDB API key here...", &state.tmdb_api_key)
-                .on_input(Message::TmdbApiKeyChanged)
-                .style(iced::theme::TextInput::Custom(Box::new(TextInputStyle { mode: theme_mode })))
-                .padding(10)
-                .size(12)
-                .secure(true)
-                .width(Length::Fill),
-        ]
-        .align_items(Alignment::Center);
-        
+
+        let mut input_row =
+            row![
+                text_input("Paste your TMDB API key here...", &state.tmdb_api_key)
+                    .on_input(Message::TmdbApiKeyChanged)
+                    .style(iced::theme::TextInput::Custom(Box::new(TextInputStyle {
+                        mode: theme_mode
+                    })))
+                    .padding(10)
+                    .size(12)
+                    .secure(true)
+                    .width(Length::Fill),
+            ]
+            .align_items(Alignment::Center);
+
         // Add "Use Default" button if a default key is available
         if has_default {
-            input_row = input_row
-                .push(Space::with_width(8))
-                .push(
-                    button(text("Use Default").size(12))
-                        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
-                        .padding([10, 16])
-                        .on_press(Message::UseDefaultApiKey)
-                );
+            input_row = input_row.push(Space::with_width(8)).push(
+                button(text("Use Default").size(12))
+                    .style(iced::theme::Button::Custom(Box::new(
+                        SecondaryButtonStyle { mode: theme_mode },
+                    )))
+                    .padding([10, 16])
+                    .on_press(Message::UseDefaultApiKey),
+            );
         }
-        
-        input_row = input_row
-            .push(Space::with_width(8))
-            .push(verify_button);
-        
+
+        input_row = input_row.push(Space::with_width(8)).push(verify_button);
+
         input_row.into()
     };
 
@@ -490,7 +522,7 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                 .size(11)
                 .style(iced::theme::Text::Color(colors.text_secondary))
         )
-        .style(iced::theme::Container::Custom(Box::new(HelpBadgeStyle { 
+        .style(iced::theme::Container::Custom(Box::new(HelpBadgeStyle {
             mode: theme_mode,
         })))
         .padding([2, 7]),
@@ -517,28 +549,26 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
 
     // Find and Match Section with loading state in button
     let is_matching = state.loading;
-    let match_section = column![
-        row![
-            text("Find & Match")
-                .size(13)
-                .style(iced::theme::Text::Color(colors.text_primary)),
-            Space::with_width(Length::Fill),
-            if unmatched_count > 0 {
-                text(format!("{} unmatched", unmatched_count))
-                    .size(11)
-                    .style(iced::theme::Text::Color(colors.warning))
-            } else if has_files {
-                text("All matched")
-                    .size(11)
-                    .style(iced::theme::Text::Color(colors.success))
-            } else {
-                text("").size(11)
-            },
-        ]
-        .align_items(Alignment::Center),
+    let match_section = column![row![
+        text("Find & Match")
+            .size(13)
+            .style(iced::theme::Text::Color(colors.text_primary)),
+        Space::with_width(Length::Fill),
+        if unmatched_count > 0 {
+            text(format!("{} unmatched", unmatched_count))
+                .size(11)
+                .style(iced::theme::Text::Color(colors.warning))
+        } else if has_files {
+            text("All matched")
+                .size(11)
+                .style(iced::theme::Text::Color(colors.success))
+        } else {
+            text("").size(11)
+        },
     ]
+    .align_items(Alignment::Center),]
     .spacing(0);
-    
+
     // Find and Match Button with visible loading indicator (separate element)
     let match_button: Element<Message> = if is_matching {
         container(
@@ -547,12 +577,14 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                 Space::with_width(8),
                 text("Matching files...").size(13),
             ]
-            .align_items(Alignment::Center)
+            .align_items(Alignment::Center),
         )
         .padding([12, 16])
         .width(Length::Fill)
         .center_x()
-        .style(iced::theme::Container::Custom(Box::new(LoadingButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Container::Custom(Box::new(
+            LoadingButtonStyle { mode: theme_mode },
+        )))
         .into()
     } else if has_files && has_api_key {
         button(
@@ -562,12 +594,14 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                     Space::with_width(8),
                     text("Find & Match All").size(13),
                 ]
-                .align_items(Alignment::Center)
+                .align_items(Alignment::Center),
             )
             .width(Length::Fill)
-            .center_x()
+            .center_x(),
         )
-        .style(iced::theme::Button::Custom(Box::new(PrimaryButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Button::Custom(Box::new(PrimaryButtonStyle {
+            mode: theme_mode,
+        })))
         .padding([10, 16])
         .on_press(Message::AutoMatchAll)
         .width(Length::Fill)
@@ -580,25 +614,32 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                     Space::with_width(8),
                     text("Find & Match All").size(13),
                 ]
-                .align_items(Alignment::Center)
+                .align_items(Alignment::Center),
             )
             .width(Length::Fill)
-            .center_x()
+            .center_x(),
         )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Button::Custom(Box::new(
+            SecondaryButtonStyle { mode: theme_mode },
+        )))
         .padding([10, 16])
         .width(Length::Fill)
         .into()
     };
 
     // Count selected files for manual search
-    let selected_count = state.files.iter().filter(|f| f.is_selected && f.matched_metadata.is_none()).count();
+    let selected_count = state
+        .files
+        .iter()
+        .filter(|f| f.is_selected && f.matched_metadata.is_none())
+        .count();
 
     // Manual Search Section - Always visible for searching any title
     let manual_section: Element<Message> = column![
         Space::with_height(20),
-        container(Space::new(Length::Fill, Length::Fixed(1.0)))
-            .style(iced::theme::Container::Custom(Box::new(DividerStyle { mode: theme_mode }))),
+        container(Space::new(Length::Fill, Length::Fixed(1.0))).style(
+            iced::theme::Container::Custom(Box::new(DividerStyle { mode: theme_mode }))
+        ),
         Space::with_height(16),
         row![
             text("Manual Search")
@@ -610,9 +651,12 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
                     .size(10)
                     .style(iced::theme::Text::Color(colors.accent_primary))
             } else if let Some(file) = state.selected_file() {
-                text(format!("Apply to: {}", truncate_filename(&file.filename, 18)))
-                    .size(10)
-                    .style(iced::theme::Text::Color(colors.text_secondary))
+                text(format!(
+                    "Apply to: {}",
+                    truncate_filename(&file.filename, 18)
+                ))
+                .size(10)
+                .style(iced::theme::Text::Color(colors.text_secondary))
             } else {
                 text("Click a file to apply")
                     .size(10)
@@ -625,13 +669,17 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
             text_input("Search movie or TV show...", &state.search_input)
                 .on_input(Message::TmdbSearchInputChanged)
                 .on_submit(Message::SearchTmdb(state.search_input.clone()))
-                .style(iced::theme::TextInput::Custom(Box::new(TextInputStyle { mode: theme_mode })))
+                .style(iced::theme::TextInput::Custom(Box::new(TextInputStyle {
+                    mode: theme_mode
+                })))
                 .padding(10)
                 .size(12)
                 .width(Length::Fill),
             Space::with_width(8),
             button(icon_to_text(Bootstrap::Search).size(14.0))
-                .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+                .style(iced::theme::Button::Custom(Box::new(
+                    SecondaryButtonStyle { mode: theme_mode }
+                )))
                 .padding([10, 14])
                 .on_press(Message::SearchTmdb(state.search_input.clone())),
         ]
@@ -657,12 +705,14 @@ fn build_actions_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, M
         ]
         .spacing(0)
         .width(Length::Fill)
-        .height(Length::Fill)
+        .height(Length::Fill),
     )
     .width(Length::FillPortion(4))
     .height(Length::Fill)
     .padding(14)
-    .style(iced::theme::Container::Custom(Box::new(PanelStyle { mode: theme_mode })))
+    .style(iced::theme::Container::Custom(Box::new(PanelStyle {
+        mode: theme_mode,
+    })))
     .into()
 }
 
@@ -685,7 +735,7 @@ fn build_search_results(state: &AppState, theme_mode: ThemeMode) -> Element<'_, 
                     Space::with_width(8),
                     text("Searching...").size(12),
                 ]
-                .align_items(Alignment::Center)
+                .align_items(Alignment::Center),
             )
             .width(Length::Fill)
             .center_x()
@@ -694,7 +744,7 @@ fn build_search_results(state: &AppState, theme_mode: ThemeMode) -> Element<'_, 
             container(
                 text("Search for movies or TV shows above")
                     .size(11)
-                    .style(iced::theme::Text::Color(colors.text_disabled))
+                    .style(iced::theme::Text::Color(colors.text_disabled)),
             )
             .width(Length::Fill)
             .center_x()
@@ -702,10 +752,11 @@ fn build_search_results(state: &AppState, theme_mode: ThemeMode) -> Element<'_, 
             .into()
         }
     } else {
-        let result_items: Vec<Element<Message>> = state.search_results
+        let result_items: Vec<Element<Message>> = state
+            .search_results
             .iter()
             .enumerate()
-            .take(12)  // Show more results
+            .take(12) // Show more results
             .map(|(idx, result)| {
                 // Use text badges instead of Bootstrap icons
                 let type_text = match result.media_type {
@@ -722,10 +773,12 @@ fn build_search_results(state: &AppState, theme_mode: ThemeMode) -> Element<'_, 
                 let type_badge = container(
                     text(type_text)
                         .size(9)
-                        .style(iced::theme::Text::Color(Color::WHITE))
+                        .style(iced::theme::Text::Color(Color::WHITE)),
                 )
                 .padding([2, 5])
-                .style(iced::theme::Container::Custom(Box::new(BadgeStyle { color: type_color })));
+                .style(iced::theme::Container::Custom(Box::new(BadgeStyle {
+                    color: type_color,
+                })));
 
                 button(
                     container(
@@ -760,15 +813,17 @@ fn build_search_results(state: &AppState, theme_mode: ThemeMode) -> Element<'_, 
                                 .style(iced::theme::Text::Color(colors.accent_primary)),
                         ]
                         .align_items(Alignment::Center)
-                        .spacing(0)
+                        .spacing(0),
                     )
                     .padding([6, 10])
                     .style(iced::theme::Container::Custom(Box::new(FileItemStyle {
                         mode: theme_mode,
                         is_selected: false,
-                    })))
+                    }))),
                 )
-                .style(iced::theme::Button::Custom(Box::new(TransparentButtonStyle)))
+                .style(iced::theme::Button::Custom(Box::new(
+                    TransparentButtonStyle,
+                )))
                 .padding(0)
                 .on_press(Message::ApplySearchResult(idx))
                 .into()
@@ -778,9 +833,9 @@ fn build_search_results(state: &AppState, theme_mode: ThemeMode) -> Element<'_, 
         scrollable(
             Column::with_children(result_items)
                 .spacing(4)
-                .width(Length::Fill)
+                .width(Length::Fill),
         )
-        .height(Length::Fill)  // Use remaining space
+        .height(Length::Fill) // Use remaining space
         .into()
     }
 }
@@ -799,13 +854,16 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
             button(
                 text(&p.name)
                     .size(11)
-                    .style(iced::theme::Text::Color(
-                        if is_selected { colors.accent_primary } else { colors.text_secondary }
-                    ))
+                    .style(iced::theme::Text::Color(if is_selected {
+                        colors.accent_primary
+                    } else {
+                        colors.text_secondary
+                    })),
             )
-            .style(iced::theme::Button::Custom(Box::new(
-                PatternButtonStyle { mode: theme_mode, is_selected }
-            )))
+            .style(iced::theme::Button::Custom(Box::new(PatternButtonStyle {
+                mode: theme_mode,
+                is_selected,
+            })))
             .padding([5, 10])
             .on_press(Message::PatternChanged(p))
             .into()
@@ -817,13 +875,14 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
             .size(13)
             .style(iced::theme::Text::Color(colors.text_primary)),
         Space::with_height(10),
-        Row::with_children(pattern_buttons)
-            .spacing(8),
+        Row::with_children(pattern_buttons).spacing(8),
         Space::with_height(10),
         container(
             column![
                 row![
-                    text("Movie: ").size(11).style(iced::theme::Text::Color(colors.text_disabled)),
+                    text("Movie: ")
+                        .size(11)
+                        .style(iced::theme::Text::Color(colors.text_disabled)),
                     text(&state.rename_pattern.movie_pattern)
                         .size(11)
                         .font(JETBRAINS_MONO)
@@ -832,7 +891,9 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                 .width(Length::Fill),
                 Space::with_height(6),
                 row![
-                    text("TV: ").size(11).style(iced::theme::Text::Color(colors.text_disabled)),
+                    text("TV: ")
+                        .size(11)
+                        .style(iced::theme::Text::Color(colors.text_disabled)),
                     text(&state.rename_pattern.tv_pattern)
                         .size(11)
                         .font(JETBRAINS_MONO)
@@ -843,7 +904,9 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
             .spacing(0)
         )
         .padding([8, 10])
-        .style(iced::theme::Container::Custom(Box::new(CodeBlockStyle { mode: theme_mode }))),
+        .style(iced::theme::Container::Custom(Box::new(CodeBlockStyle {
+            mode: theme_mode
+        }))),
     ]
     .spacing(0);
 
@@ -856,7 +919,8 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
         row![
             container(
                 text(
-                    state.output_directory
+                    state
+                        .output_directory
                         .as_ref()
                         .map(|p| p.to_string_lossy().to_string())
                         .unwrap_or_else(|| "Same as source".to_string())
@@ -866,7 +930,9 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
             )
             .width(Length::Fill),
             button(icon_to_text(Bootstrap::FolderFill).size(12.0))
-                .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+                .style(iced::theme::Button::Custom(Box::new(
+                    SecondaryButtonStyle { mode: theme_mode }
+                )))
                 .padding([8, 12])
                 .on_press(Message::SelectOutputDirectory),
         ]
@@ -892,7 +958,7 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                     .size(10)
                     .style(iced::theme::Text::Color(colors.text_disabled)),
             ]
-            .align_items(Alignment::Center)
+            .align_items(Alignment::Center),
         )
         .width(Length::Fill)
         .height(Length::Fill)
@@ -911,7 +977,9 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                             .style(iced::theme::Text::Color(colors.text_secondary)),
                         Space::with_height(4),
                         row![
-                            text("→").size(12).style(iced::theme::Text::Color(colors.accent_primary)),
+                            text("→")
+                                .size(12)
+                                .style(iced::theme::Text::Color(colors.accent_primary)),
                             Space::with_width(6),
                             text(file.new_filename.as_ref().unwrap_or(&String::new()))
                                 .size(11)
@@ -921,7 +989,7 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                         .align_items(Alignment::Center),
                     ]
                     .spacing(0)
-                    .width(Length::Fill)
+                    .width(Length::Fill),
                 )
                 .padding([10, 12])
                 .width(Length::Fill)
@@ -936,7 +1004,7 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
         scrollable(
             Column::with_children(preview_items)
                 .spacing(6)
-                .width(Length::Fill)
+                .width(Length::Fill),
         )
         .height(Length::Fill)
         .into()
@@ -950,9 +1018,11 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                 Space::with_width(8),
                 text(format!("Rename {} File(s)", files_ready.len())).size(13),
             ]
-            .align_items(Alignment::Center)
+            .align_items(Alignment::Center),
         )
-        .style(iced::theme::Button::Custom(Box::new(SuccessButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Button::Custom(Box::new(SuccessButtonStyle {
+            mode: theme_mode,
+        })))
         .padding([11, 18])
         .on_press(Message::ShowRenamePreview)
         .width(Length::Fill)
@@ -963,9 +1033,11 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                 Space::with_width(8),
                 text("Rename Files").size(13),
             ]
-            .align_items(Alignment::Center)
+            .align_items(Alignment::Center),
         )
-        .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+        .style(iced::theme::Button::Custom(Box::new(
+            SecondaryButtonStyle { mode: theme_mode },
+        )))
         .padding([11, 18])
         .width(Length::Fill)
     };
@@ -997,12 +1069,14 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
         ]
         .spacing(0)
         .width(Length::Fill)
-        .height(Length::Fill)
+        .height(Length::Fill),
     )
     .width(Length::FillPortion(3))
     .height(Length::Fill)
     .padding(16)
-    .style(iced::theme::Container::Custom(Box::new(PanelStyle { mode: theme_mode })))
+    .style(iced::theme::Container::Custom(Box::new(PanelStyle {
+        mode: theme_mode,
+    })))
     .into()
 }
 
@@ -1011,7 +1085,8 @@ fn build_rename_panel(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
 fn build_rename_modal(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Message> {
     let colors = get_colors(theme_mode);
 
-    let preview_items: Vec<Element<Message>> = state.rename_preview
+    let preview_items: Vec<Element<Message>> = state
+        .rename_preview
         .iter()
         .map(|(old, new)| {
             column![
@@ -1020,7 +1095,9 @@ fn build_rename_modal(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                     .font(JETBRAINS_MONO)
                     .style(iced::theme::Text::Color(colors.text_secondary)),
                 row![
-                    text("→").size(11).style(iced::theme::Text::Color(colors.accent_primary)),
+                    text("→")
+                        .size(11)
+                        .style(iced::theme::Text::Color(colors.accent_primary)),
                     Space::with_width(6),
                     text(new)
                         .font(JETBRAINS_MONO)
@@ -1037,7 +1114,7 @@ fn build_rename_modal(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
     let preview_list = scrollable(
         Column::with_children(preview_items)
             .spacing(12)
-            .width(Length::Fill)
+            .width(Length::Fill),
     )
     .height(Length::Fixed(280.0));
 
@@ -1047,15 +1124,20 @@ fn build_rename_modal(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                 .size(17)
                 .style(iced::theme::Text::Color(colors.text_primary)),
             Space::with_height(6),
-            text(format!("{} file(s) will be renamed:", state.rename_preview.len()))
-                .size(12)
-                .style(iced::theme::Text::Color(colors.text_secondary)),
+            text(format!(
+                "{} file(s) will be renamed:",
+                state.rename_preview.len()
+            ))
+            .size(12)
+            .style(iced::theme::Text::Color(colors.text_secondary)),
             Space::with_height(14),
             preview_list,
             Space::with_height(14),
             row![
                 button(text("Cancel").size(12))
-                    .style(iced::theme::Button::Custom(Box::new(SecondaryButtonStyle { mode: theme_mode })))
+                    .style(iced::theme::Button::Custom(Box::new(
+                        SecondaryButtonStyle { mode: theme_mode }
+                    )))
                     .padding([8, 16])
                     .on_press(Message::HideRenamePreview),
                 Space::with_width(10),
@@ -1067,18 +1149,22 @@ fn build_rename_modal(state: &AppState, theme_mode: ThemeMode) -> Element<'_, Me
                     ]
                     .align_items(Alignment::Center)
                 )
-                .style(iced::theme::Button::Custom(Box::new(SuccessButtonStyle { mode: theme_mode })))
+                .style(iced::theme::Button::Custom(Box::new(SuccessButtonStyle {
+                    mode: theme_mode
+                })))
                 .padding([8, 16])
                 .on_press(Message::ExecuteRename),
             ]
             .spacing(0),
         ]
         .spacing(0)
-        .align_items(Alignment::Center)
+        .align_items(Alignment::Center),
     )
     .padding(20)
     .max_width(550)
-    .style(iced::theme::Container::Custom(Box::new(CardStyle { mode: theme_mode })))
+    .style(iced::theme::Container::Custom(Box::new(CardStyle {
+        mode: theme_mode,
+    })))
     .into()
 }
 
@@ -1119,11 +1205,17 @@ impl iced::widget::button::StyleSheet for PatternButtonStyle {
     fn active(&self, _style: &Self::Style) -> iced::widget::button::Appearance {
         let colors = get_colors(self.mode);
         iced::widget::button::Appearance {
-            background: Some(iced::Background::Color(
-                if self.is_selected { colors.surface_active } else { colors.surface }
-            )),
+            background: Some(iced::Background::Color(if self.is_selected {
+                colors.surface_active
+            } else {
+                colors.surface
+            })),
             border: iced::Border {
-                color: if self.is_selected { colors.accent_primary } else { colors.border },
+                color: if self.is_selected {
+                    colors.accent_primary
+                } else {
+                    colors.border
+                },
                 width: 1.0,
                 radius: 5.0.into(),
             },
@@ -1218,7 +1310,6 @@ impl iced::widget::container::StyleSheet for DefaultKeyContainerStyle {
     }
 }
 
-
 struct DividerStyle {
     mode: ThemeMode,
 }
@@ -1302,7 +1393,11 @@ impl iced::widget::checkbox::StyleSheet for SmallCheckboxStyle {
                 Color::WHITE
             },
             border: iced::Border {
-                color: if is_checked { colors.accent_primary } else { colors.border },
+                color: if is_checked {
+                    colors.accent_primary
+                } else {
+                    colors.border
+                },
                 width: 1.0,
                 radius: 3.0.into(),
             },

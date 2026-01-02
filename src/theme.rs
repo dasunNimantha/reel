@@ -58,33 +58,33 @@ impl ColorScheme {
             accent_secondary: Color::from_rgb(0.85, 0.65, 0.20),
             accent_hover: Color::from_rgb(1.0, 0.85, 0.35),
             accent_dark: Color::from_rgb(0.75, 0.55, 0.15),
-            
+
             bg_primary: Color::from_rgb(0.08, 0.08, 0.10),
             bg_secondary: Color::from_rgb(0.12, 0.12, 0.14),
             bg_tertiary: Color::from_rgb(0.16, 0.16, 0.18),
             bg_hover: Color::from_rgb(0.18, 0.18, 0.20),
-            
+
             surface: Color::from_rgb(0.11, 0.11, 0.13),
             surface_hover: Color::from_rgb(0.15, 0.15, 0.17),
             surface_active: Color::from_rgb(0.19, 0.19, 0.21),
             surface_elevated: Color::from_rgb(0.13, 0.13, 0.15),
-            
+
             text_primary: Color::from_rgb(0.95, 0.95, 0.97),
             text_secondary: Color::from_rgb(0.65, 0.65, 0.70),
             text_disabled: Color::from_rgb(0.45, 0.45, 0.50),
-            
+
             success: Color::from_rgb(0.25, 0.85, 0.45),
             warning: Color::from_rgb(1.0, 0.75, 0.25),
             error: Color::from_rgb(0.95, 0.35, 0.35),
             info: Color::from_rgb(0.35, 0.65, 0.95),
-            
+
             border: Color::from_rgb(0.22, 0.22, 0.26),
             border_light: Color::from_rgb(0.18, 0.18, 0.22),
             border_focus: Color::from_rgb(0.95, 0.75, 0.25),
 
-            movie_color: Color::from_rgb(0.95, 0.45, 0.45),    // Red for movies
-            tv_color: Color::from_rgb(0.45, 0.75, 0.95),       // Blue for TV
-            unknown_color: Color::from_rgb(0.55, 0.55, 0.60),  // Gray for unknown
+            movie_color: Color::from_rgb(0.95, 0.45, 0.45), // Red for movies
+            tv_color: Color::from_rgb(0.45, 0.75, 0.95),    // Blue for TV
+            unknown_color: Color::from_rgb(0.55, 0.55, 0.60), // Gray for unknown
         }
     }
 
@@ -94,26 +94,26 @@ impl ColorScheme {
             accent_secondary: Color::from_rgb(0.75, 0.50, 0.05),
             accent_hover: Color::from_rgb(0.95, 0.70, 0.20),
             accent_dark: Color::from_rgb(0.65, 0.45, 0.00),
-            
+
             bg_primary: Color::from_rgb(0.97, 0.97, 0.98),
             bg_secondary: Color::from_rgb(0.94, 0.94, 0.96),
             bg_tertiary: Color::from_rgb(0.91, 0.91, 0.93),
             bg_hover: Color::from_rgb(0.89, 0.89, 0.91),
-            
+
             surface: Color::from_rgb(1.0, 1.0, 1.0),
             surface_hover: Color::from_rgb(0.98, 0.98, 1.0),
             surface_active: Color::from_rgb(0.95, 0.95, 0.97),
             surface_elevated: Color::from_rgb(1.0, 1.0, 1.0),
-            
+
             text_primary: Color::from_rgb(0.10, 0.10, 0.12),
             text_secondary: Color::from_rgb(0.40, 0.40, 0.45),
             text_disabled: Color::from_rgb(0.60, 0.60, 0.65),
-            
+
             success: Color::from_rgb(0.20, 0.75, 0.40),
             warning: Color::from_rgb(0.90, 0.65, 0.15),
             error: Color::from_rgb(0.90, 0.30, 0.30),
             info: Color::from_rgb(0.30, 0.55, 0.90),
-            
+
             border: Color::from_rgb(0.82, 0.82, 0.87),
             border_light: Color::from_rgb(0.88, 0.88, 0.92),
             border_focus: Color::from_rgb(0.85, 0.60, 0.10),
@@ -573,7 +573,7 @@ impl iced::widget::container::StyleSheet for FileItemStyle {
 
     fn appearance(&self, _style: &Self::Style) -> iced::widget::container::Appearance {
         let colors = get_colors(self.mode);
-        
+
         let bg_color = if self.is_selected {
             if self.mode == ThemeMode::Dark {
                 Color::from_rgba(0.95, 0.75, 0.25, 0.15)
@@ -631,4 +631,3 @@ impl iced::widget::container::StyleSheet for MediaTypeBadgeStyle {
         }
     }
 }
-
