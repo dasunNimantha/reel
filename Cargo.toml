@@ -5,6 +5,7 @@ edition = "2021"
 description = "Reel - Media file organizer and renamer with online metadata fetching"
 authors = ["Dasun P"]
 license = "MIT"
+build = "build.rs"
 
 [dependencies]
 # GUI Framework
@@ -40,3 +41,6 @@ chrono = "0.4"
 
 # Lazy static for singletons
 lazy_static = "1.4"
+
+[build-dependencies]
+winresource = "0.1"
