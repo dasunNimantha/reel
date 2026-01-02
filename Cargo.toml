@@ -1,6 +1,6 @@
 [package]
 name = "reel"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Reel - Media file organizer and renamer with online metadata fetching"
 authors = ["Dasun P"]
